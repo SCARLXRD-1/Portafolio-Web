@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { 
   Folder, FileCode2, ChevronRight, ChevronLeft, 
-  Home, HardDrive, Star, Search, Grid, List 
+  Home, HardDrive, Star, Search, Grid, List, Menu, X 
 } from 'lucide-react';
 import { useBrowserStore } from './BrowserApp';
 import { useWindowStore } from '@/store/useWindowStore';
@@ -32,6 +32,7 @@ export default function ProjectsApp() {
   const [history, setHistory] = useState<(string | null)[]>([null]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const { navigate } = useBrowserStore();
   const { openWindow } = useWindowStore();
@@ -42,6 +43,7 @@ export default function ProjectsApp() {
     setHistory(newHistory);
     setHistoryIndex(newHistory.length - 1);
     setCurrentFolderId(folderId);
+    setIsMobileMenuOpen(false); // Close mobile menu after navigating
   };
 
   const goBack = () => {
@@ -96,10 +98,27 @@ export default function ProjectsApp() {
   const breadcrumbs = getBreadcrumbs();
 
   return (
-    <div className="flex h-full w-full bg-white dark:bg-[#121212] text-black dark:text-white font-sans">
+    <div className="flex h-full w-full bg-white dark:bg-[#121212] text-black dark:text-white font-sans relative">
       
+      {/* Mobile Sidebar Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="absolute inset-0 bg-black/20 dark:bg-black/50 z-40 sm:hidden backdrop-blur-sm"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-48 border-r border-black/10 dark:border-white/10 bg-[#f8f9fa] dark:bg-[#181818] flex flex-col p-3 shrink-0 hidden sm:flex">
+      <aside className={`
+        ${isMobileMenuOpen ? 'absolute inset-y-0 left-0 z-50 flex' : 'hidden'}
+        sm:relative sm:flex w-56 border-r border-black/10 dark:border-white/10 bg-[#f8f9fa] dark:bg-[#181818] flex-col p-3 shrink-0 h-full shadow-2xl sm:shadow-none transition-transform
+      `}>
+        <div className="flex justify-between items-center sm:hidden mb-4 px-3">
+          <span className="font-bold text-sm">Menú</span>
+          <button onClick={() => setIsMobileMenuOpen(false)} className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded">
+            <X size={18} />
+          </button>
+        </div>
         <div className="text-xs font-bold text-black/40 dark:text-white/40 uppercase tracking-wider mb-2 px-3">Favoritos</div>
         <button 
           onClick={() => navigateTo(null)}
@@ -114,7 +133,7 @@ export default function ProjectsApp() {
         </button>
         <button 
           onClick={() => navigateTo('starred')}
-          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors mt-1 ${
             currentFolderId === 'starred' 
               ? 'bg-blue-500 text-white' 
               : 'hover:bg-black/5 dark:hover:bg-white/5'
@@ -145,16 +164,22 @@ export default function ProjectsApp() {
         <header className="h-14 border-b border-black/10 dark:border-white/10 flex items-center justify-between px-4 shrink-0 bg-[#f8f9fa] dark:bg-[#181818]">
           <div className="flex items-center gap-2">
             <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors sm:hidden"
+            >
+              <Menu size={20} />
+            </button>
+            <button 
               onClick={goBack} 
               disabled={historyIndex === 0}
-              className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors hidden sm:block"
             >
               <ChevronLeft size={20} />
             </button>
             <button 
               onClick={goForward} 
               disabled={historyIndex === history.length - 1}
-              className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors hidden sm:block"
             >
               <ChevronRight size={20} />
             </button>
