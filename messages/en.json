@@ -1,0 +1,37 @@
+{
+  "Dock": {
+    "projects": "Projects",
+    "about": "About",
+    "skills": "Skills",
+    "contact": "Contact",
+    "terminal": "Terminal",
+    "github": "GitHub",
+    "experiments": "Experiments",
+    "browser": "Browser",
+    "music": "Music",
+    "certificates": "Certificates",
+    "experience": "Experience",
+    "settings": "Settings"
+  },
+  "Terminal": {
+    "welcome": "Welcome to AKASHI DEV. Type 'help' to see available commands.",
+    "helpText": "Available commands:\n  help         - Shows this help message\n  projects     - Opens the Projects app\n  about        - Opens the About Me app\n  skills       - Opens the Skills app\n  contact      - Opens the Contact app\n  certificates - Opens Certificates\n  experiments  - Opens the Lab\n  experience   - Opens Experience\n  settings     - Opens Settings\n  browser      - Opens the Web Browser\n  whoami       - Shows current user\n  date         - Shows system date\n  github       - Opens my GitHub profile in a new tab\n  theme        - Changes system theme (Usage: theme dark / theme light)\n  fetch cv     - Simulates downloading and opening my CV\n  neofetch     - Shows AkashiOS system information\n  echo [text]  - Prints text to the console\n  sudo         - ?????\n  clear        - Clears the terminal output",
+    "notFound": "Command not found: {command}. Type 'help' to see available commands.",
+    "prompt": "guest@akashi-dev:~$"
+  },
+  "Desktop": {
+    "title": "AKASHI DEV"
+  },
+  "About": {
+    "title": "About me - AKASHI DEV",
+    "subtitle": "Software Engineer & UI/UX Designer",
+    "description": "Hi, I'm Akashi, a passionate developer focused on creating premium user interfaces with interactive and fluid experiences. I combine the technical rigor of engineering with the aesthetic sensitivity of modern design to bring extraordinary web projects to life.",
+    "systemInfo": "System Specifications",
+    "osName": "OS Name",
+    "osValue": "AKASHI DEV OS v1.0.0",
+    "processor": "Processor",
+    "processorValue": "AI-Powered Agent Framework (Next.js & Framer Motion)",
+    "memory": "Memory RAM",
+    "memoryValue": "16 GB Virtual (Web Assembly Optimized)"
+  }
+}
