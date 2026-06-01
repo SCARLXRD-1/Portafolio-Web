@@ -12,7 +12,6 @@ import SplashScreen from './SplashScreen';
 import { useMobileDetect } from '@/hooks/useMobileDetect';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import TopMenuBar from './TopMenuBar';
-import DesktopWidgets from './DesktopWidgets';
 import ThemeToggle from './ThemeToggle';
 import NotificationCenter from './NotificationCenter';
 import ContextMenu from './ContextMenu';
