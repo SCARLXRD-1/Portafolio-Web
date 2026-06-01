@@ -15,6 +15,8 @@ import BrowserApp from '../apps/BrowserApp';
 import CertificatesApp from '../apps/CertificatesApp';
 import ExperienceApp from '../apps/ExperienceApp';
 import SettingsApp from '../apps/SettingsApp';
+import MusicApp from '../apps/MusicApp';
+import FilesApp from '../apps/FilesApp';
 
 const APP_COMPONENTS: Record<AppId, React.ComponentType<any>> = {
   terminal: TerminalApp,
@@ -27,6 +29,8 @@ const APP_COMPONENTS: Record<AppId, React.ComponentType<any>> = {
   certificates: CertificatesApp,
   experience: ExperienceApp,
   settings: SettingsApp,
+  music: MusicApp,
+  files: FilesApp,
 };
 
 export default function WindowManager() {

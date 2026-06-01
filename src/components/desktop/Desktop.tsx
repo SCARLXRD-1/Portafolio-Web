@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Dock from './Dock';
 import WindowManager from '../windows/WindowManager';
 import { Wifi, BatteryMedium, Volume2, Search } from 'lucide-react';
-import { motion, useReducedMotion } from 'framer-motion';
+import LockScreen from './LockScreen';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useWindowStore } from '@/store/useWindowStore';
 import LanguageSwitcher from './LanguageSwitcher';
 import SplashScreen from './SplashScreen';
@@ -53,6 +54,7 @@ export default function Desktop() {
   const shouldHideDock = isAnyMaximized && !isMouseNearBottom;
   const [isMounted, setIsMounted] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
+  const [isLocked, setIsLocked] = useState(true);
   const isMobile = useMobileDetect();
   const { openMenu } = useContextMenuStore();
 
@@ -63,12 +65,19 @@ export default function Desktop() {
     openMenu(e.clientX, e.clientY);
   };
 
+  const handleUnlock = () => {
+    setIsLocked(false);
+  };
+
   return (
     <div 
       onContextMenu={handleContextMenu}
       className="relative w-full h-full overflow-hidden text-white font-sans bg-[#0a0a0a] transition-colors duration-500"
     >
-      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      <AnimatePresence>
+        {showSplash && <SplashScreen key="splash" onComplete={() => setShowSplash(false)} />}
+        {!showSplash && isLocked && <LockScreen key="lock" onUnlock={handleUnlock} />}
+      </AnimatePresence>
       
       {/* Lottie Background Animation (Optimized json) */}
       <div className="absolute inset-0 z-0 overflow-hidden bg-black transition-colors duration-500">
@@ -86,9 +95,6 @@ export default function Desktop() {
       <NotificationCenter />
       <ContextMenu />
       <Spotlight />
-
-      {/* Rainmeter style Widgets on Desktop */}
-      {!isMobile && <DesktopWidgets />}
 
       {/* Window Manager Layer - container passes clicks through, windows catch them */}
       <div className="absolute inset-0 z-10 pointer-events-none">

@@ -11,7 +11,7 @@ interface BrowserState {
 }
 
 export const useBrowserStore = create<BrowserState>((set) => ({
-  url: 'https://example.com', // Default placeholder
+  url: '', // Default placeholder empty
   navigate: (url) => set({ url }),
 }));
 
@@ -23,13 +23,20 @@ export default function BrowserApp() {
   // Sync input when global URL changes
   React.useEffect(() => {
     setInputUrl(url);
-    setIsLoading(true);
+    if (url) setIsLoading(true);
   }, [url]);
+
+  // Cleanup on unmount (when window is closed)
+  React.useEffect(() => {
+    return () => {
+      useBrowserStore.getState().navigate('');
+    };
+  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       let finalUrl = inputUrl;
-      if (!finalUrl.startsWith('http')) {
+      if (!finalUrl.startsWith('http') && finalUrl.trim() !== '') {
         finalUrl = 'https://' + finalUrl;
       }
       navigate(finalUrl);
@@ -48,10 +55,10 @@ export default function BrowserApp() {
             <ChevronRight size={18} />
           </button>
           <button 
-            onClick={() => setIsLoading(true)}
+            onClick={() => { if (url) setIsLoading(true); }}
             className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 text-black/80 dark:text-white/80 transition-colors"
           >
-            <RefreshCw size={16} className={isLoading ? 'animate-spin text-emerald-500' : ''} />
+            <RefreshCw size={16} className={isLoading && url ? 'animate-spin text-emerald-500' : ''} />
           </button>
         </div>
 
@@ -63,30 +70,45 @@ export default function BrowserApp() {
             onChange={(e) => setInputUrl(e.target.value)}
             onKeyDown={handleKeyDown}
             className="w-full bg-transparent text-sm outline-none text-black dark:text-white placeholder:text-black/40 dark:placeholder:text-white/40"
-            placeholder="Introduce una URL o busca en Google"
+            placeholder="Introduce una URL o selecciona un proyecto"
           />
         </div>
 
-        <button className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 text-black/80 dark:text-white/80 transition-colors">
+        <button 
+          onClick={() => navigate('')}
+          className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 text-black/80 dark:text-white/80 transition-colors"
+        >
           <Home size={18} />
         </button>
       </div>
 
       {/* Browser Content */}
       <div className="flex-1 relative bg-white dark:bg-black">
-        {isLoading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white dark:bg-[#1a1a1a] z-10">
-            <RefreshCw size={24} className="animate-spin text-emerald-500 mb-4" />
-            <p className="text-sm text-black/50 dark:text-white/50">Cargando página...</p>
+        {url === '' ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#f8f9fa] dark:bg-[#121212] z-10 text-center px-4">
+            <Globe size={64} className="text-black/10 dark:text-white/10 mb-6" />
+            <h2 className="text-xl font-medium text-black/60 dark:text-white/60 mb-2">Navegador Web</h2>
+            <p className="text-sm text-black/40 dark:text-white/40 max-w-sm">
+              Ve a la aplicación de <span className="font-semibold text-blue-500">Proyectos</span> y dale doble clic a un proyecto para visualizarlo aquí.
+            </p>
           </div>
+        ) : (
+          <>
+            {isLoading && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white dark:bg-[#1a1a1a] z-10">
+                <RefreshCw size={24} className="animate-spin text-emerald-500 mb-4" />
+                <p className="text-sm text-black/50 dark:text-white/50">Cargando página...</p>
+              </div>
+            )}
+            <iframe
+              src={url}
+              className="w-full h-full border-none"
+              onLoad={() => setIsLoading(false)}
+              sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+              title="Browser"
+            />
+          </>
         )}
-        <iframe
-          src={url}
-          className="w-full h-full border-none"
-          onLoad={() => setIsLoading(false)}
-          sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-          title="Browser"
-        />
       </div>
     </div>
   );

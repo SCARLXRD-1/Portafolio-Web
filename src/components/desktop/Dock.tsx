@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { Terminal, FolderOpen, User, Code2, Mail, Lightbulb, Globe, Award, Briefcase, Settings } from 'lucide-react';
 import { AppId, useWindowStore } from '@/store/useWindowStore';
+import { useSystemSounds } from '@/hooks/useSystemSounds';
 
 interface DockItemProps {
   id: AppId | 'github';
@@ -46,8 +47,10 @@ export default function Dock() {
   const focusWindow = useWindowStore((state) => state.focusWindow);
   const activeWindow = useWindowStore((state) => state.activeWindow);
   const windows = useWindowStore((state) => state.windows);
+  const { playClick } = useSystemSounds();
 
   const handleAppClick = (id: AppId) => {
+    playClick();
     const win = windows[id];
     if (!win?.isOpen) {
       openWindow(id);

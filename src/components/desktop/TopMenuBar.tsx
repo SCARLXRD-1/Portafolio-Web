@@ -8,11 +8,11 @@ import { useBattery } from '@/hooks/useBattery';
 
 import ThemeToggle from './ThemeToggle';
 
+import { useWindowStore } from '@/store/useWindowStore';
+
 export default function TopMenuBar() {
   const [time, setTime] = useState(() => new Date());
   const [isMounted, setIsMounted] = useState(false);
-  const [showMusic, setShowMusic] = useState(false);
-  const musicRef = useRef<HTMLDivElement>(null);
   
   const { level, charging, supported } = useBattery();
   const batteryPercentage = Math.round(level * 100);
@@ -31,20 +31,17 @@ export default function TopMenuBar() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (musicRef.current && !musicRef.current.contains(e.target as Node)) {
-        setShowMusic(false);
-      }
-    };
-    if (showMusic) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showMusic]);
-
   const timeString = isMounted ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
   const fullDateString = isMounted ? time.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) : '';
+
+  const handleMusicClick = () => {
+    const winState = useWindowStore.getState().windows['music'];
+    if (winState?.isOpen) {
+      useWindowStore.getState().focusWindow('music');
+    } else {
+      useWindowStore.getState().openWindow('music');
+    }
+  };
 
   return (
     <div className="absolute top-0 left-0 right-0 h-8 bg-white/40 dark:bg-black/40 backdrop-blur-xl border-b border-black/5 dark:border-white/10 z-50 flex items-center px-4 text-xs font-medium tracking-wide text-black/90 dark:text-white/90 transition-colors duration-500">
@@ -59,49 +56,17 @@ export default function TopMenuBar() {
       
       <div className="flex-1" />
       
-      <div className="flex items-center gap-4 relative" ref={musicRef}>
+      <div className="flex items-center gap-4 relative">
         <ThemeToggle />
         <LanguageSwitcher />
         
-        {/* Music Popover Trigger */}
+        {/* Music App Trigger */}
         <button 
-          onClick={() => setShowMusic(!showMusic)}
-          className={`opacity-70 hover:opacity-100 transition-opacity flex items-center justify-center ${showMusic ? 'opacity-100 text-emerald-500' : ''}`}
+          onClick={handleMusicClick}
+          className="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-center"
         >
           <Music size={14} />
         </button>
-
-        {/* Music Popover */}
-        <AnimatePresence>
-          {showMusic && (
-            <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              transition={{ duration: 0.15 }}
-              className="absolute top-full mt-2 right-2 sm:right-12 w-[calc(100vw-16px)] sm:w-80 max-w-[320px] bg-black rounded-xl overflow-hidden shadow-2xl border border-white/10 z-[99999] flex flex-col"
-            >
-              <div className="bg-[#181818] px-3 py-2 border-b border-white/10 flex items-center justify-between">
-                <span className="text-xs font-semibold text-white/80">Spotify</span>
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              </div>
-
-              {/* Content */}
-              <div className="h-[352px] w-full bg-[#121212] relative flex flex-col">
-                <iframe 
-                  style={{ borderRadius: '0' }} 
-                  src="https://open.spotify.com/embed/playlist/0vvXsWCC9xrXsKd4FyS8kM?utm_source=generator&theme=0" 
-                  width="100%" 
-                  height="100%" 
-                  frameBorder="0" 
-                  allowFullScreen={false} 
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                  loading="lazy"
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         <Search size={14} className="opacity-70 cursor-pointer hover:opacity-100 transition-opacity" />
         <Wifi size={14} className="opacity-70 cursor-pointer hover:opacity-100 transition-opacity" />

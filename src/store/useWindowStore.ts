@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type AppId = 'terminal' | 'projects' | 'about' | 'skills' | 'contact' | 'experiments' | 'browser' | 'certificates' | 'experience' | 'settings';
+export type AppId = 'terminal' | 'projects' | 'about' | 'skills' | 'contact' | 'experiments' | 'browser' | 'certificates' | 'experience' | 'settings' | 'music' | 'files';
 
 export interface WindowState {
   id: AppId;
@@ -37,6 +37,8 @@ const defaultWindows: Record<AppId, WindowState> = {
   certificates: { id: 'certificates', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 900, height: 600 },
   experience: { id: 'experience', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 900, height: 650 },
   settings: { id: 'settings', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 700, height: 500 },
+  music: { id: 'music', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 340, height: 420 },
+  files: { id: 'files', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 750, height: 500 },
 };
 
 let highestZIndex = 1;

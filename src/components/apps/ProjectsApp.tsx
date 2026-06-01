@@ -23,8 +23,18 @@ interface FileSystemItem {
   size?: string;
 }
 
-// Simulated file system (vacío para que agregues tus propios proyectos reales)
-const fileSystem: FileSystemItem[] = [];
+// Simulated file system with an example project
+const fileSystem: FileSystemItem[] = [
+  {
+    id: 'pest-control',
+    name: 'Pest Control Manager',
+    type: 'project',
+    parentId: null, // Root folder
+    url: 'http://dynova.dpdns.org/#/login',
+    date: '2023-11-20',
+    size: '14.5 MB'
+  }
+];
 
 export default function ProjectsApp() {
   const t = useTranslations('Dock');
