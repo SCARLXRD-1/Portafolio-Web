@@ -23,9 +23,7 @@ export default function SettingsApp() {
     playClick();
     const { data, error } = await insforge.auth.signInWithOAuth({
       provider: 'github',
-      options: {
-        redirectTo: window.location.origin,
-      },
+      redirectTo: window.location.origin,
     });
     if (error) {
       console.error('Error logging in:', error.message);
