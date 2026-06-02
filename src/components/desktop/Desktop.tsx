@@ -16,15 +16,19 @@ import ThemeToggle from './ThemeToggle';
 import NotificationCenter from './NotificationCenter';
 import ContextMenu from './ContextMenu';
 import Spotlight from './Spotlight';
+import OfflineDetector from './OfflineDetector';
 import { useContextMenuStore } from '@/store/useContextMenuStore';
 import Lottie from 'lottie-react';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export default function Desktop() {
   const windows = useWindowStore((state) => state.windows);
   const [isMouseNearBottom, setIsMouseNearBottom] = useState(false);
   const [animationData, setAnimationData] = useState<any>(null);
+  const initializeAuth = useAuthStore(state => state.initialize);
 
   useEffect(() => {
+    initializeAuth();
     // Fetch the 4.8MB Lottie json file asynchronously to avoid blocking the initial JS bundle
     fetch('/fondo.json')
       .then(res => res.json())
@@ -78,6 +82,8 @@ export default function Desktop() {
         {!showSplash && isLocked && <LockScreen key="lock" onUnlock={handleUnlock} />}
       </AnimatePresence>
       
+      <OfflineDetector />
+
       {/* Lottie Background Animation (Optimized json) */}
       <div className="absolute inset-0 z-0 overflow-hidden bg-black transition-colors duration-500">
         {animationData && (

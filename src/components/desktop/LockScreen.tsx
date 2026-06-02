@@ -10,12 +10,15 @@ interface LockScreenProps {
   onUnlock: () => void;
 }
 
+import { insforge } from '@/lib/insforge';
+import { useAuthStore } from '@/store/useAuthStore';
+
 export default function LockScreen({ onUnlock }: LockScreenProps) {
   const [time, setTime] = useState(() => new Date());
-  const [password, setPassword] = useState('');
   const [isMounted, setIsMounted] = useState(false);
   const t = useTranslations('Terminal'); // using existing translations or generic text
   const { playLogin, playClick } = useSystemSounds();
+  const { user, isAdmin } = useAuthStore();
 
   useEffect(() => {
     setIsMounted(true);
@@ -25,15 +28,7 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
 
   const handleUnlock = () => {
     playLogin();
-    onUnlock();
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleUnlock();
-    } else {
-      playClick(); // Play a small click on typing
-    }
+    onUnlock(); // This enters OS
   };
 
   const timeString = isMounted ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
@@ -41,11 +36,11 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      initial={{ opacity: 1, backgroundColor: 'rgba(0,0,0,1)' }}
+      animate={{ opacity: 1, backgroundColor: 'rgba(0,0,0,0.6)' }}
       exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
-      transition={{ duration: 0.8, ease: 'easeInOut' }}
-      className="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-black/60 backdrop-blur-2xl text-white select-none"
+      transition={{ duration: 1.2, ease: 'easeInOut' }}
+      className="absolute inset-0 z-[100] flex flex-col items-center justify-center backdrop-blur-2xl text-white select-none"
     >
       {/* Clock Area */}
       <div className="absolute top-24 flex flex-col items-center">
@@ -66,27 +61,22 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
         
         <h2 className="text-2xl font-semibold mb-6">AKASHI DEV</h2>
 
-        <div className="relative w-64 group">
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Introduce contraseña..."
-            autoFocus
-            className="w-full bg-white/10 border border-white/20 rounded-full py-2 px-4 pr-10 text-center text-sm outline-none focus:bg-white/20 focus:border-white/40 transition-all placeholder:text-white/40"
-          />
-          <button 
-            onClick={handleUnlock}
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors"
-          >
-            <ArrowRight size={14} />
-          </button>
-        </div>
-        
-        <p className="text-xs text-white/40 mt-4 opacity-0 group-focus-within:opacity-100 transition-opacity">
-          Presiona Enter para iniciar sesión
-        </p>
+        <form onSubmit={(e) => { e.preventDefault(); handleUnlock(); }} className="flex flex-col items-center gap-4 w-64">
+          <div className="relative w-full">
+            <input 
+              type="password" 
+              placeholder="Contraseña" 
+              className="w-full bg-white/10 text-white border border-white/20 focus:border-white/50 focus:bg-white/20 rounded-full py-2 pl-4 pr-10 outline-none transition-all placeholder:text-white/40"
+              autoFocus
+            />
+            <button 
+              type="submit"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-white/20 hover:bg-white/30 rounded-full text-white transition-colors"
+            >
+              <ArrowRight size={16} />
+            </button>
+          </div>
+        </form>
       </motion.div>
 
       {/* Bottom info */}

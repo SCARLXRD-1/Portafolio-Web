@@ -1,156 +1,619 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence, Variants } from 'framer-motion';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
 
 interface SplashScreenProps {
   onComplete: () => void;
 }
 
+/* ─── tiny helpers ─── */
+const rand = (min: number, max: number) => Math.random() * (max - min) + min;
+
+/* ─── Particle field (ambient background during logo phase) ─── */
+function ParticleField() {
+  const particles = useRef(
+    Array.from({ length: 60 }, (_, i) => ({
+      id: i,
+      x: rand(0, 100),
+      y: rand(0, 100),
+      size: rand(1, 3),
+      duration: rand(3, 7),
+      delay: rand(0, 4),
+      opacity: rand(0.15, 0.5),
+    }))
+  ).current;
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full"
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            width: p.size,
+            height: p.size,
+            background: `rgba(52, 211, 153, ${p.opacity})`,
+          }}
+          animate={{
+            y: [0, -30, 0],
+            opacity: [p.opacity, p.opacity * 1.8, p.opacity],
+            scale: [1, 1.4, 1],
+          }}
+          transition={{
+            duration: p.duration,
+            repeat: Infinity,
+            delay: p.delay,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ─── Scan-line overlay ─── */
+function ScanLines() {
+  return (
+    <div
+      className="absolute inset-0 pointer-events-none z-50"
+      style={{
+        background:
+          'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px)',
+        mixBlendMode: 'multiply',
+      }}
+    />
+  );
+}
+
+/* ─── AK Logo (recreated in SVG) ─── */
+function AKLogo({ glowIntensity = 0 }: { glowIntensity?: number }) {
+  return (
+    <svg
+      viewBox="0 0 260 220"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-[180px] h-[160px] md:w-[240px] md:h-[200px]"
+    >
+      <defs>
+        {/* Main glow filter */}
+        <filter id="logoGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation={4 + glowIntensity * 8} result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+
+        {/* Intense core glow */}
+        <filter id="coreGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation={2 + glowIntensity * 4} result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+
+        {/* Gradient fills */}
+        <linearGradient id="letterGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#d1d5db" />
+          <stop offset="50%" stopColor="#f9fafb" />
+          <stop offset="100%" stopColor="#9ca3af" />
+        </linearGradient>
+
+        <linearGradient id="letterEdge" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#e5e7eb" />
+          <stop offset="100%" stopColor="#6b7280" />
+        </linearGradient>
+
+        <linearGradient id="diamondGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#22d3ee" />
+          <stop offset="50%" stopColor="#06b6d4" />
+          <stop offset="100%" stopColor="#0891b2" />
+        </linearGradient>
+
+        <linearGradient id="termGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#d1d5db" />
+          <stop offset="100%" stopColor="#9ca3af" />
+        </linearGradient>
+      </defs>
+
+      {/* ─── Letter "A" ─── */}
+      <g filter="url(#logoGlow)">
+        {/* A — left leg */}
+        <motion.path
+          d="M 30 180 L 90 20 L 110 20 L 85 90"
+          stroke="url(#letterGrad)"
+          strokeWidth="18"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{ duration: 0.8, ease: 'easeInOut', delay: 0.2 }}
+        />
+        {/* A — right leg (shorter, partial) */}
+        <motion.path
+          d="M 110 20 L 140 100"
+          stroke="url(#letterGrad)"
+          strokeWidth="18"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{ duration: 0.6, ease: 'easeInOut', delay: 0.6 }}
+        />
+        {/* A — crossbar */}
+        <motion.path
+          d="M 55 120 L 120 120"
+          stroke="url(#letterEdge)"
+          strokeWidth="12"
+          strokeLinecap="round"
+          fill="none"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 0.7 }}
+          transition={{ duration: 0.5, ease: 'easeOut', delay: 1.0 }}
+        />
+      </g>
+
+      {/* ─── Letter "K" ─── */}
+      <g filter="url(#logoGlow)">
+        {/* K — vertical stem (overlaps with A) */}
+        <motion.path
+          d="M 130 40 L 130 180"
+          stroke="url(#letterGrad)"
+          strokeWidth="18"
+          strokeLinecap="round"
+          fill="none"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{ duration: 0.7, ease: 'easeInOut', delay: 0.4 }}
+        />
+        {/* K — upper arm */}
+        <motion.path
+          d="M 130 110 L 200 30"
+          stroke="url(#letterGrad)"
+          strokeWidth="16"
+          strokeLinecap="round"
+          fill="none"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{ duration: 0.6, ease: 'easeOut', delay: 0.9 }}
+        />
+        {/* K — lower arm */}
+        <motion.path
+          d="M 130 110 L 210 180"
+          stroke="url(#letterGrad)"
+          strokeWidth="16"
+          strokeLinecap="round"
+          fill="none"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{ duration: 0.6, ease: 'easeOut', delay: 1.1 }}
+        />
+      </g>
+
+      {/* ─── Terminal prompt  >_  ─── */}
+      <g filter="url(#coreGlow)">
+        {/* ">" chevron */}
+        <motion.path
+          d="M 88 140 L 108 155 L 88 170"
+          stroke="url(#termGrad)"
+          strokeWidth="7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{ duration: 0.5, ease: 'easeOut', delay: 1.6 }}
+        />
+        {/* "_" underscore */}
+        <motion.path
+          d="M 112 170 L 135 170"
+          stroke="url(#termGrad)"
+          strokeWidth="6"
+          strokeLinecap="round"
+          fill="none"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: [0, 1, 1] }}
+          transition={{ duration: 0.4, ease: 'easeOut', delay: 1.9 }}
+        />
+      </g>
+
+      {/* ─── Cyan diamond ─── */}
+      <motion.g
+        filter="url(#coreGlow)"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 2.0 }}
+        style={{ transformOrigin: '210px 50px' }}
+      >
+        <motion.path
+          d="M 210 30 L 230 50 L 210 70 L 190 50 Z"
+          fill="url(#diamondGrad)"
+          stroke="#22d3ee"
+          strokeWidth="1.5"
+          animate={{
+            filter: [
+              'drop-shadow(0 0 4px rgba(34,211,238,0.4))',
+              'drop-shadow(0 0 12px rgba(34,211,238,0.8))',
+              'drop-shadow(0 0 4px rgba(34,211,238,0.4))',
+            ],
+          }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        {/* Diamond highlight facet */}
+        <path
+          d="M 210 33 L 225 50 L 210 50 Z"
+          fill="rgba(255,255,255,0.25)"
+        />
+      </motion.g>
+    </svg>
+  );
+}
+
+/* ─── Boot log phase ─── */
+const BOOT_LOGS = [
+  "ACPI: Core revision 20260531",
+  "PM: Registering ACPI NVS region",
+  "CPU0: AKASHI Neural Engine v2.0 @ 4.80GHz",
+  "SMP: Bringing up secondary AI cores...",
+  "x86/npu: Booted 128 nodes, 4096 processors",
+  "Btrfs loaded, crc32c=crc32c-generic",
+  "Mounting root filesystem...",
+  "systemd[1]: Starting system initialization.",
+  "systemd[1]: Started udev Kernel Device Manager.",
+  "Starting Network Service...",
+  "IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready",
+  "systemd[1]: Reached target Network.",
+  "Starting Akashi Graphics Server...",
+  "Loading Core Web Modules...",
+  "Initializing Window Manager...",
+  "Mounting Virtual File System...",
+  "systemd[1]: Started Akashi OS Environment.",
+  "Welcome to AKASHI OS v2.0",
+];
+
+/* ─── Ring animation around logo ─── */
+function OrbitalRing({ delay = 0, size = 200, duration = 3 }: { delay?: number; size?: number; duration?: number }) {
+  return (
+    <motion.div
+      className="absolute rounded-full border pointer-events-none"
+      style={{
+        width: size,
+        height: size,
+        borderColor: 'rgba(52, 211, 153, 0.15)',
+        left: '50%',
+        top: '50%',
+        marginLeft: -size / 2,
+        marginTop: -size / 2,
+      }}
+      initial={{ scale: 0.6, opacity: 0 }}
+      animate={{
+        scale: [0.6, 1, 1.4],
+        opacity: [0, 0.6, 0],
+        borderWidth: ['2px', '1px', '0.5px'],
+      }}
+      transition={{
+        duration,
+        repeat: Infinity,
+        delay,
+        ease: 'easeOut',
+      }}
+    />
+  );
+}
+
+/* ─────────────────────── MAIN COMPONENT ─────────────────────── */
 export default function SplashScreen({ onComplete }: SplashScreenProps) {
+  const [logs, setLogs] = useState<string[]>([]);
+  const [phase, setPhase] = useState<'boot' | 'blackout' | 'logo' | 'done'>('boot');
   const [progress, setProgress] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
+  const [glowPulse, setGlowPulse] = useState(0);
 
-  const [showFireworks, setShowFireworks] = useState(false);
-
+  /* Boot log sequence */
   useEffect(() => {
-    // Significantly reduced duration for faster load times (from 3500 to 1200)
-    const duration = 1300; 
-    const intervalTime = 15;
-    const steps = duration / intervalTime;
-    let currentStep = 0;
-
-    const interval = setInterval(() => {
-      currentStep++;
-      setProgress(Math.min((currentStep / steps) * 100, 100));
-
-      if (currentStep >= steps) {
-        clearInterval(interval);
-        setTimeout(() => {
-          setIsVisible(false);
-          setTimeout(onComplete, 200); // reduced from 500
-        }, 200); // reduced from 800
+    let i = 0;
+    const iv = setInterval(() => {
+      if (i < BOOT_LOGS.length) {
+        setLogs((prev) => [...prev, BOOT_LOGS[i]]);
+        i++;
+        setProgress(Math.floor((i / BOOT_LOGS.length) * 100));
+      } else {
+        clearInterval(iv);
+        setTimeout(() => setPhase('blackout'), 200);
       }
-    }, intervalTime);
-
-    // Trigger fireworks earlier
-    const fwTimeout = setTimeout(() => setShowFireworks(true), 800);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(fwTimeout);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, 90);
+    return () => clearInterval(iv);
   }, []);
 
-  const textChars = "AKASHI DEV".split("");
+  /* Blackout → logo */
+  useEffect(() => {
+    if (phase === 'blackout') {
+      const t = setTimeout(() => setPhase('logo'), 600);
+      return () => clearTimeout(t);
+    }
+  }, [phase]);
 
-  // Generate random firework particles
-  const fireworkParticles = Array.from({ length: 40 }).map((_, i) => {
-    const angle = (i * 360) / 40;
-    const distance = 80 + Math.random() * 200;
-    const x = Math.cos((angle * Math.PI) / 180) * distance;
-    const y = Math.sin((angle * Math.PI) / 180) * distance;
-    const size = 2 + Math.random() * 4;
-    const colorClass = Math.random() > 0.5 ? 'bg-emerald-400' : 'bg-white';
-    return { x, y, size, colorClass };
-  });
+  /* Logo phase → done */
+  useEffect(() => {
+    if (phase === 'logo') {
+      // Glow pulse ramp
+      const pulseIv = setInterval(() => {
+        setGlowPulse((p) => Math.min(p + 0.05, 1));
+      }, 50);
+
+      const t = setTimeout(() => {
+        clearInterval(pulseIv);
+        setPhase('done');
+      }, 4200);
+      return () => {
+        clearInterval(pulseIv);
+        clearTimeout(t);
+      };
+    }
+  }, [phase]);
+
+  /* Done → callback */
+  useEffect(() => {
+    if (phase === 'done') {
+      const t = setTimeout(onComplete, 800);
+      return () => clearTimeout(t);
+    }
+  }, [phase, onComplete]);
+
+  const textChars = 'AKASHI'.split('');
+  const osChars = 'OS'.split('');
 
   return (
     <AnimatePresence>
-      {isVisible && (
+      {phase !== 'done' && (
         <motion.div
+          key="splash"
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: 1.05 }}
-          transition={{ duration: 0.5, ease: "easeInOut" }}
-          className="fixed inset-0 z-[9999] bg-[#0a0a0a] flex flex-col items-center justify-center pointer-events-none"
+          exit={{ opacity: 0, scale: 1.08, filter: 'blur(12px)' }}
+          transition={{ duration: 0.8, ease: 'easeInOut' }}
+          className="fixed inset-0 z-[9999] bg-black flex flex-col pointer-events-none overflow-hidden"
         >
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col items-center w-full relative"
-          >
-            
-            {/* SVG Text Animation Container */}
-            <div className="relative w-full max-w-4xl h-32 md:h-48 flex justify-center items-center mb-16">
-              
-              <svg className="w-full h-full overflow-visible" viewBox="0 0 800 200">
-                <defs>
-                  <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="6" result="blur" />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
-                
-                <text 
-                  x="50%" 
-                  y="50%" 
-                  textAnchor="middle" 
-                  dominantBaseline="middle"
-                  className="text-5xl md:text-7xl font-black tracking-[0.2em]"
-                  style={{ fontFamily: "system-ui, sans-serif", fontWeight: 900 }}
-                  filter="url(#glow)"
-                >
-                  {textChars.map((char, i) => (
-                    <motion.tspan
-                      key={i}
-                      initial={{ strokeDasharray: 400, strokeDashoffset: 400, fill: "rgba(255,255,255,0)", stroke: "rgba(52,211,153,0.8)", strokeWidth: 2 }}
-                      animate={{ strokeDashoffset: 0, fill: "rgba(255,255,255,1)", stroke: "rgba(52,211,153,0)" }}
-                      transition={{ 
-                        strokeDashoffset: { duration: 0.4, ease: "easeInOut", delay: i * 0.05 },
-                        fill: { duration: 0.3, ease: "easeOut", delay: i * 0.05 + 0.3 },
-                        stroke: { duration: 0.3, ease: "easeOut", delay: i * 0.05 + 0.3 }
-                      }}
-                    >
-                      {char}
-                    </motion.tspan>
-                  ))}
-                </text>
-              </svg>
-
-              {/* Fireworks Explosion */}
-              {showFireworks && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-0 h-0 z-50">
-                  {fireworkParticles.map((p, i) => (
+          {/* ─── BOOT PHASE ─── */}
+          <AnimatePresence>
+            {phase === 'boot' && (
+              <motion.div
+                key="boot"
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex-1 p-6 font-mono text-[12px] md:text-sm leading-tight flex flex-col justify-end pb-16"
+              >
+                <div className="max-w-3xl w-full">
+                  {logs.map((log, i) => (
                     <motion.div
                       key={i}
-                      initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
-                      animate={{ 
-                        x: p.x, 
-                        y: p.y, 
-                        scale: [0, 1.2, 0], 
-                        opacity: [1, 1, 0] 
-                      }}
-                      transition={{ duration: 1, ease: "easeOut", delay: Math.random() * 0.2 }}
-                      className={`absolute rounded-full ${p.colorClass}`}
-                      style={{ width: p.size, height: p.size, boxShadow: '0 0 12px 2px currentColor' }}
-                    />
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.08 }}
+                      className="mb-0.5"
+                    >
+                      <span className="text-emerald-700/60 mr-3 font-semibold">
+                        [{((i * 0.123) + 0.05).toFixed(6)}]
+                      </span>
+                      <span className="text-emerald-400/80">{log}</span>
+                    </motion.div>
                   ))}
-                  <motion.div
-                    initial={{ scale: 0, opacity: 1 }}
-                    animate={{ scale: 12, opacity: 0 }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    className="absolute -top-4 -left-4 w-8 h-8 rounded-full bg-emerald-300 blur-xl mix-blend-screen"
-                  />
+                  {logs.length < BOOT_LOGS.length && (
+                    <motion.span
+                      animate={{ opacity: [1, 0] }}
+                      transition={{ duration: 0.5, repeat: Infinity }}
+                      className="text-emerald-400 font-bold"
+                    >
+                      █
+                    </motion.span>
+                  )}
                 </div>
-              )}
-            </div>
 
-            <div className="w-56 h-1 bg-white/10 rounded-full overflow-hidden">
-              <motion.div 
-                className="h-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            
-            <div className="mt-4 text-xs font-mono text-white/40 tracking-widest uppercase">
-              Initializing System... {Math.round(progress)}%
-            </div>
-          </motion.div>
+                {/* Progress bar */}
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="flex items-center justify-between text-[10px] text-emerald-600/60 mb-1 font-mono">
+                    <span>SYSTEM BOOT</span>
+                    <span>{progress}%</span>
+                  </div>
+                  <div className="h-[2px] bg-emerald-900/30 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full rounded-full"
+                      style={{
+                        background: 'linear-gradient(90deg, #059669, #34d399, #6ee7b7)',
+                      }}
+                      initial={{ width: '0%' }}
+                      animate={{ width: `${progress}%` }}
+                      transition={{ duration: 0.15, ease: 'linear' }}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ─── BLACKOUT PHASE ─── */}
+          {phase === 'blackout' && (
+            <div className="absolute inset-0 bg-black" />
+          )}
+
+          {/* ─── LOGO PHASE ─── */}
+          <AnimatePresence>
+            {phase === 'logo' && (
+              <motion.div
+                key="logo"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, scale: 1.15, filter: 'blur(20px)' }}
+                transition={{ duration: 0.6, ease: 'easeOut' }}
+                className="absolute inset-0 flex flex-col items-center justify-center bg-black"
+              >
+                {/* Ambient particles */}
+                <ParticleField />
+                <ScanLines />
+
+                {/* Radial background glow */}
+                <motion.div
+                  className="absolute"
+                  style={{
+                    width: 500,
+                    height: 500,
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(52,211,153,0.08) 0%, transparent 70%)',
+                  }}
+                  animate={{
+                    scale: [1, 1.3, 1],
+                    opacity: [0.4, 0.8, 0.4],
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                />
+
+                {/* Orbital rings */}
+                <div className="relative flex items-center justify-center">
+                  <OrbitalRing delay={0} size={280} duration={2.5} />
+                  <OrbitalRing delay={0.8} size={340} duration={3} />
+                  <OrbitalRing delay={1.6} size={400} duration={3.5} />
+
+                  {/* Logo container */}
+                  <motion.div
+                    initial={{ scale: 0.3, opacity: 0, rotateY: -90 }}
+                    animate={{ scale: 1, opacity: 1, rotateY: 0 }}
+                    transition={{
+                      scale: { type: 'spring', stiffness: 200, damping: 20, delay: 0.2 },
+                      opacity: { duration: 0.4, delay: 0.2 },
+                      rotateY: { duration: 1, ease: 'easeOut', delay: 0.2 },
+                    }}
+                    style={{ perspective: 800 }}
+                  >
+                    {/* Outer glow ring */}
+                    <motion.div
+                      className="absolute -inset-8 rounded-full"
+                      style={{
+                        background: 'radial-gradient(circle, rgba(52,211,153,0.12) 0%, transparent 70%)',
+                      }}
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.5, 1, 0.5],
+                      }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                    />
+
+                    <AKLogo glowIntensity={glowPulse} />
+                  </motion.div>
+                </div>
+
+                {/* ─── AKASHI OS text ─── */}
+                <motion.div
+                  className="mt-10 flex items-center gap-1 select-none"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 2.4, duration: 0.6, ease: 'easeOut' }}
+                >
+                  {/* AKASHI */}
+                  <div className="flex overflow-hidden">
+                    {textChars.map((char, i) => (
+                      <motion.span
+                        key={`a-${i}`}
+                        className="text-[28px] md:text-[36px] font-extralight tracking-[0.35em] text-white/90"
+                        style={{ fontFamily: "'Inter', 'SF Pro Display', system-ui, sans-serif" }}
+                        initial={{ y: 40, opacity: 0, filter: 'blur(8px)' }}
+                        animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+                        transition={{
+                          duration: 0.5,
+                          delay: 2.5 + i * 0.07,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                      >
+                        {char}
+                      </motion.span>
+                    ))}
+                  </div>
+
+                  {/* Spacer */}
+                  <motion.span
+                    className="w-3"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 3.1 }}
+                  />
+
+                  {/* OS */}
+                  <div className="flex overflow-hidden">
+                    {osChars.map((char, i) => (
+                      <motion.span
+                        key={`o-${i}`}
+                        className="text-[28px] md:text-[36px] font-bold tracking-[0.35em]"
+                        style={{
+                          fontFamily: "'Inter', 'SF Pro Display', system-ui, sans-serif",
+                          background: 'linear-gradient(135deg, #34d399 0%, #06b6d4 100%)',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                        }}
+                        initial={{ y: -40, opacity: 0, filter: 'blur(8px)' }}
+                        animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+                        transition={{
+                          duration: 0.5,
+                          delay: 3.1 + i * 0.1,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                      >
+                        {char}
+                      </motion.span>
+                    ))}
+                  </div>
+                </motion.div>
+
+                {/* Tagline */}
+                <motion.p
+                  className="mt-3 text-[11px] md:text-xs tracking-[0.5em] uppercase text-emerald-500/40 font-light"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 3.5, duration: 0.8 }}
+                >
+                  Developer Environment
+                </motion.p>
+
+                {/* Bottom loading bar */}
+                <motion.div
+                  className="absolute bottom-12 w-48"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 2.8, duration: 0.4 }}
+                >
+                  <div className="h-[1px] bg-white/5 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full rounded-full"
+                      style={{
+                        background: 'linear-gradient(90deg, transparent, #34d399, transparent)',
+                      }}
+                      initial={{ x: '-100%' }}
+                      animate={{ x: '200%' }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        ease: 'linear',
+                      }}
+                    />
+                  </div>
+                </motion.div>
+
+                {/* Version tag */}
+                <motion.span
+                  className="absolute bottom-6 text-[9px] text-white/15 tracking-widest font-mono"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 3.2, duration: 0.6 }}
+                >
+                  v2.0.0 BUILD 20260601
+                </motion.span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
     </AnimatePresence>

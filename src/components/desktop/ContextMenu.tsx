@@ -98,17 +98,6 @@ export default function ContextMenu() {
           <Code2 size={16} className="text-black/70 dark:text-white/70" />
           <span>Ver código fuente</span>
         </button>
-
-        <button 
-          onClick={() => {
-            window.location.href = '/es/admin';
-            closeMenu();
-          }}
-          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-black dark:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-        >
-          <Settings size={16} className="text-black/70 dark:text-white/70" />
-          <span>Panel de Administración</span>
-        </button>
       </motion.div>
     </AnimatePresence>
   );

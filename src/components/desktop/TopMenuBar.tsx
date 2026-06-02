@@ -9,10 +9,12 @@ import { useBattery } from '@/hooks/useBattery';
 import ThemeToggle from './ThemeToggle';
 
 import { useWindowStore } from '@/store/useWindowStore';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export default function TopMenuBar() {
   const [time, setTime] = useState(() => new Date());
   const [isMounted, setIsMounted] = useState(false);
+  const { user, profile } = useAuthStore();
   
   const { level, charging, supported } = useBattery();
   const batteryPercentage = Math.round(level * 100);
@@ -57,6 +59,8 @@ export default function TopMenuBar() {
       <div className="flex-1" />
       
       <div className="flex items-center gap-4 relative">
+
+
         <ThemeToggle />
         <LanguageSwitcher />
         
