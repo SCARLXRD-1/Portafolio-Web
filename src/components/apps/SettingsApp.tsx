@@ -16,7 +16,7 @@ export default function SettingsApp() {
   const router = useRouter();
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
-  const { user, isAdmin, signOut } = useAuthStore();
+  const { user, isAdmin, signOut, profile } = useAuthStore();
   const { playClick, playLogin } = useSystemSounds();
 
   const handleGithubLogin = async () => {
@@ -223,9 +223,9 @@ export default function SettingsApp() {
               {user && isAdmin ? (
                 <>
                   <div className="w-16 h-16 rounded-full overflow-hidden mb-4 border-2 border-white/20">
-                    <img src={user.user_metadata?.avatar_url || 'https://github.com/identicons/akashi.png'} alt="Admin" className="w-full h-full object-cover" />
+                    <img src={profile?.avatar_url || 'https://github.com/identicons/akashi.png'} alt="Admin" className="w-full h-full object-cover" />
                   </div>
-                  <h3 className="font-medium text-lg mb-1">{user.user_metadata?.user_name || 'Admin'}</h3>
+                  <h3 className="font-medium text-lg mb-1">{profile?.display_name || 'Admin'}</h3>
                   <p className="text-sm text-green-500 mb-6 font-medium flex items-center gap-1">Sesión de Administrador activa</p>
                   <button 
                     onClick={handleSignOut}
