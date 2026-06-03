@@ -7,9 +7,12 @@ interface AuthState {
   isAdmin: boolean;
   profile: any | null;
   isLoading: boolean;
+  accessDenied: boolean;
+  deniedEmail: string | null;
   initialize: () => Promise<void>;
   signOut: () => Promise<void>;
   fetchProfile: () => Promise<void>;
+  clearDenied: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -17,20 +20,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAdmin: false,
   profile: null,
   isLoading: true,
+  accessDenied: false,
+  deniedEmail: null,
 
   initialize: async () => {
-    // Get current user (automatically waits for OAuth callback if any)
     const { data: { user }, error } = await insforge.auth.getCurrentUser();
     
     if (user) {
       const isAdmin = user.email === 'jobathanjimenez1265@gmail.com';
       if (!isAdmin) {
-        // Force sign out if not admin to enforce strict rule
+        // Store the denied email for UI feedback before signing out
+        const email = user.email || 'desconocido';
         await insforge.auth.signOut();
-        set({ user: null, isAdmin: false, isLoading: false, profile: null });
+        set({ user: null, isAdmin: false, isLoading: false, profile: null, accessDenied: true, deniedEmail: email });
         return;
       }
-      set({ user, isAdmin, isLoading: false });
+      set({ user, isAdmin, isLoading: false, accessDenied: false, deniedEmail: null });
       get().fetchProfile();
     } else {
       set({ user: null, isAdmin: false, isLoading: false, profile: null });
@@ -49,8 +54,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
+  clearDenied: () => {
+    set({ accessDenied: false, deniedEmail: null });
+  },
+
   signOut: async () => {
     await insforge.auth.signOut();
-    set({ user: null, isAdmin: false, profile: null });
+    set({ user: null, isAdmin: false, profile: null, accessDenied: false, deniedEmail: null });
   }
 }));

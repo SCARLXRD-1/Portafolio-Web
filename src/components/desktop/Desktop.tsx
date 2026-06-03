@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Dock from './Dock';
 import WindowManager from '../windows/WindowManager';
 import { Wifi, BatteryMedium, Volume2, Search } from 'lucide-react';
@@ -18,18 +18,19 @@ import ContextMenu from './ContextMenu';
 import Spotlight from './Spotlight';
 import OfflineDetector from './OfflineDetector';
 import { useContextMenuStore } from '@/store/useContextMenuStore';
-import Lottie from 'lottie-react';
+import Lottie, { LottieRefCurrentProps } from 'lottie-react';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export default function Desktop() {
   const windows = useWindowStore((state) => state.windows);
   const [isMouseNearBottom, setIsMouseNearBottom] = useState(false);
   const [animationData, setAnimationData] = useState<any>(null);
+  const lottieRef = useRef<LottieRefCurrentProps>(null);
   const initializeAuth = useAuthStore(state => state.initialize);
 
   useEffect(() => {
     initializeAuth();
-    // Fetch the 4.8MB Lottie json file asynchronously to avoid blocking the initial JS bundle
+    // Fetch the Lottie json file (~62KB) asynchronously to avoid blocking the initial JS bundle
     fetch('/fondo.json')
       .then(res => res.json())
       .then(data => setAnimationData(data))
@@ -39,6 +40,21 @@ export default function Desktop() {
   const isAnyMaximized = Object.values(windows).some(
     (w) => w.isOpen && !w.isMinimized && w.isMaximized
   );
+
+  // Pause Lottie when any window is visible to free GPU/CPU
+  const isAnyWindowVisible = useMemo(
+    () => Object.values(windows).some((w) => w.isOpen && !w.isMinimized),
+    [windows]
+  );
+
+  useEffect(() => {
+    if (!lottieRef.current) return;
+    if (isAnyWindowVisible) {
+      lottieRef.current.pause();
+    } else {
+      lottieRef.current.play();
+    }
+  }, [isAnyWindowVisible]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -88,6 +104,7 @@ export default function Desktop() {
       <div className="absolute inset-0 z-0 overflow-hidden bg-black transition-colors duration-500">
         {animationData && (
           <Lottie
+            lottieRef={lottieRef}
             animationData={animationData}
             loop={true}
             className="absolute top-1/2 left-1/2 min-w-[100vw] min-h-[100vh] w-auto h-auto max-w-none -translate-x-1/2 -translate-y-1/2 opacity-80 pointer-events-none"
