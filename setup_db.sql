@@ -26,6 +26,11 @@ CREATE POLICY "Admin update access" ON public.profile_settings
         auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
     );
 
+-- Grant base table privileges to API roles
+GRANT SELECT ON public.profile_settings TO anon, authenticated;
+GRANT UPDATE ON public.profile_settings TO authenticated;
+
+
 -- Storage objects policies
 DROP POLICY IF EXISTS "Public read for portfolio assets" ON storage.objects;
 CREATE POLICY "Public read for portfolio assets" ON storage.objects
