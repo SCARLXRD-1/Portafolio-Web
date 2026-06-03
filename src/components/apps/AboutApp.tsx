@@ -9,7 +9,7 @@ import { insforge } from '@/lib/insforge';
 export default function AboutApp() {
   const t = useTranslations('About');
   
-  const profileImageUrl = insforge.storage.from('portfolio-assets').getPublicUrl('PERFIL.png').data.publicUrl;
+  const profileImageUrl = insforge.storage.from('portfolio-assets').getPublicUrl('PERFIL.png');
 
   return (
     <div className="h-full w-full bg-[#0d0d0d]/80 text-white overflow-y-auto select-text p-6 md:p-8 flex flex-col md:flex-row gap-8 items-center md:items-start">
