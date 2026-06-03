@@ -23,17 +23,17 @@ CREATE POLICY "Public read access" ON public.profile_settings
 DROP POLICY IF EXISTS "Admin update access" ON public.profile_settings;
 CREATE POLICY "Admin update access" ON public.profile_settings
     FOR UPDATE USING (
-        auth.jwt() ->> 'email' = 'jobathanjimenez1265@gmail.com'
+        auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
     );
 
 -- Storage objects policies
 DROP POLICY IF EXISTS "Public read for portfolio assets" ON storage.objects;
 CREATE POLICY "Public read for portfolio assets" ON storage.objects
-    FOR SELECT USING (bucket_id = 'portfolio-assets');
+    FOR SELECT USING (bucket = 'portfolio-assets');
 
 DROP POLICY IF EXISTS "Admin insert/update/delete for portfolio assets" ON storage.objects;
 CREATE POLICY "Admin insert/update/delete for portfolio assets" ON storage.objects
     FOR ALL USING (
-        bucket_id = 'portfolio-assets' AND
-        auth.jwt() ->> 'email' = 'jobathanjimenez1265@gmail.com'
+        bucket = 'portfolio-assets' AND
+        auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
     );
