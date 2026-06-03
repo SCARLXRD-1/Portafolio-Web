@@ -27,7 +27,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { data: { user }, error } = await insforge.auth.getCurrentUser();
     
     if (user) {
-      const isAdmin = user.email === 'jobathanjimenez1265@gmail.com';
+      // Security: validate by user ID from environment variable, never hardcoded
+      const adminUid = process.env.NEXT_PUBLIC_ADMIN_UID;
+      const isAdmin = !!adminUid && user.id === adminUid;
+      
       if (!isAdmin) {
         // Store the denied email for UI feedback before signing out
         const email = user.email || 'desconocido';
