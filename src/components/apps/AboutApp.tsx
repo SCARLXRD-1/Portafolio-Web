@@ -4,9 +4,12 @@ import React from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { User, MapPin, Briefcase, GraduationCap, Heart } from 'lucide-react';
+import { insforge } from '@/lib/insforge';
 
 export default function AboutApp() {
   const t = useTranslations('About');
+  
+  const profileImageUrl = insforge.storage.from('portfolio-assets').getPublicUrl('PERFIL.png').data.publicUrl;
 
   return (
     <div className="h-full w-full bg-[#0d0d0d]/80 text-white overflow-y-auto select-text p-6 md:p-8 flex flex-col md:flex-row gap-8 items-center md:items-start">
@@ -14,7 +17,7 @@ export default function AboutApp() {
       <div className="flex flex-col items-center text-center md:w-1/2 shrink-0">
         <div className="relative group p-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl shadow-xl flex items-center justify-center">
           <Image 
-            src="/PERFIL.png" 
+            src={profileImageUrl} 
             alt="Profile Picture" 
             width={240}
             height={240}
