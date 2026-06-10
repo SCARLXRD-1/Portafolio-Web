@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import React, { useState, useEffect } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { 
-  Folder, FileCode2, ChevronRight, ChevronLeft, 
+  Folder, FileCode2, FileText, Image as ImageIcon, ChevronRight, ChevronLeft, 
   Home, HardDrive, Star, Search, Grid, List, Menu, X 
 } from 'lucide-react';
 import { useBrowserStore } from './BrowserApp';
 import { useWindowStore } from '@/store/useWindowStore';
+import { insforge } from '@/lib/insforge';
 
 // Types for the file system
-type FileType = 'folder' | 'project';
+type FileType = 'folder' | 'project' | 'text' | 'image';
 
 interface FileSystemItem {
   id: string;
@@ -18,21 +19,93 @@ interface FileSystemItem {
   type: FileType;
   parentId: string | null; // null means root
   url?: string;
-  description?: string;
+  content?: string;
   date?: string;
   size?: string;
 }
 
-// Simulated file system (vacío para que agregues tus propios proyectos reales más adelante)
-const fileSystem: FileSystemItem[] = [];
-
 export default function ProjectsApp() {
   const t = useTranslations('Dock');
+  const locale = useLocale();
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [history, setHistory] = useState<(string | null)[]>([null]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  const [fileSystem, setFileSystem] = useState<FileSystemItem[]>([]);
+  const [openFile, setOpenFile] = useState<FileSystemItem | null>(null);
+
+  useEffect(() => {
+    const loadProjects = async () => {
+      const { data } = await insforge.database
+        .from('projects')
+        .select('*')
+        .eq('status', 'published')
+        .order('sort_order', { ascending: true });
+        
+      if (data) {
+        const fsItems: FileSystemItem[] = [];
+        
+        data.forEach(proj => {
+          const folderId = proj.id;
+          const projName = (locale === 'es' ? proj.title_es : proj.title_en) || 'Sin título';
+          const projDesc = (locale === 'es' ? proj.description_es : proj.description_en) || '';
+          const dateStr = new Date(proj.created_at).toLocaleDateString();
+          
+          // 1. Create the project folder
+          fsItems.push({
+            id: folderId,
+            name: projName,
+            type: 'folder',
+            parentId: null,
+            date: dateStr,
+            size: '--'
+          });
+          
+          // 2. Create the executable (.exe)
+          fsItems.push({
+            id: folderId + '-exe',
+            name: 'Lanzar App.exe',
+            type: 'project',
+            parentId: folderId,
+            url: proj.demo_url || proj.github_url || 'https://github.com',
+            date: dateStr,
+            size: '2.4 MB'
+          });
+          
+          // 3. Create the description text (.txt)
+          fsItems.push({
+            id: folderId + '-txt',
+            name: 'Acerca de.txt',
+            type: 'text',
+            parentId: folderId,
+            content: `PROYECTO: ${projName}\n\nDESCRIPCIÓN:\n${projDesc}\n\nTECNOLOGÍAS:\n${proj.technologies?.join(', ') || 'N/A'}\n\nGITHUB: ${proj.github_url || 'N/A'}\nDEMO: ${proj.demo_url || 'N/A'}`,
+            date: dateStr,
+            size: '4 KB'
+          });
+          
+          // 4. Create image files if any
+          if (proj.image_urls && Array.isArray(proj.image_urls)) {
+            proj.image_urls.forEach((imgUrl: string, idx: number) => {
+              fsItems.push({
+                id: folderId + '-img-' + idx,
+                name: `captura_${idx + 1}.png`,
+                type: 'image',
+                parentId: folderId,
+                url: imgUrl,
+                date: dateStr,
+                size: `${Math.floor(Math.random() * 5 + 1)} MB`
+              });
+            });
+          }
+        });
+        
+        setFileSystem(fsItems);
+      }
+    };
+    loadProjects();
+  }, [locale]);
   
   const { navigate } = useBrowserStore();
   const { openWindow } = useWindowStore();
@@ -64,8 +137,9 @@ export default function ProjectsApp() {
     if (item.type === 'folder') {
       navigateTo(item.id);
     } else if (item.type === 'project' && item.url) {
-      navigate(item.url);
-      openWindow('browser');
+      window.open(item.url, '_blank', 'noopener,noreferrer');
+    } else if (item.type === 'text' || item.type === 'image') {
+      setOpenFile(item);
     }
   };
 
@@ -97,9 +171,68 @@ export default function ProjectsApp() {
   });
   const breadcrumbs = getBreadcrumbs();
 
+  const renderIcon = (type: FileType, isLarge: boolean) => {
+    const size = isLarge ? 56 : 20;
+    switch (type) {
+      case 'folder':
+        return <Folder size={isLarge ? 64 : 20} strokeWidth={1} fill="currentColor" className="text-blue-400 dark:text-blue-500/80 drop-shadow-md" />;
+      case 'project':
+        return (
+          <div className="relative">
+            <FileCode2 size={size} strokeWidth={1} className="text-emerald-500" />
+            {isLarge && (
+              <div className="absolute bottom-1 -right-2 bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold px-1.5 rounded uppercase border border-emerald-200 dark:border-emerald-700">
+                EXE
+              </div>
+            )}
+          </div>
+        );
+      case 'text':
+        return <FileText size={size} strokeWidth={1} className="text-amber-500" />;
+      case 'image':
+        return <ImageIcon size={size} strokeWidth={1} className="text-purple-500" />;
+    }
+  };
+
+  const getTypeLabel = (type: FileType) => {
+    switch (type) {
+      case 'folder': return 'Carpeta de archivos';
+      case 'project': return 'Aplicación (.exe)';
+      case 'text': return 'Documento de texto (.txt)';
+      case 'image': return 'Imagen PNG (.png)';
+    }
+  };
+
   return (
     <div className="flex h-full w-full bg-white dark:bg-[#121212] text-black dark:text-white font-sans relative">
       
+      {/* File Viewer Overlay */}
+      {openFile && (
+        <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#1e1e1e] border border-black/10 dark:border-white/10 shadow-2xl rounded-xl w-full max-w-2xl max-h-full flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center px-4 py-3 border-b border-black/10 dark:border-white/10 bg-[#f8f9fa] dark:bg-[#252525]">
+              <div className="flex items-center gap-2">
+                {renderIcon(openFile.type, false)}
+                <span className="font-semibold text-sm">{openFile.name}</span>
+              </div>
+              <button onClick={() => setOpenFile(null)} className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-4 overflow-auto flex-1 bg-white dark:bg-[#121212]">
+              {openFile.type === 'text' && (
+                <pre className="whitespace-pre-wrap font-mono text-sm text-black/80 dark:text-white/80 p-4">
+                  {openFile.content}
+                </pre>
+              )}
+              {openFile.type === 'image' && openFile.url && (
+                <img src={openFile.url} alt={openFile.name} className="w-full h-auto rounded-lg object-contain" />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
         <div 
@@ -245,16 +378,7 @@ export default function ProjectsApp() {
                   className="group flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-blue-50 dark:hover:bg-white/5 cursor-default transition-colors border border-transparent hover:border-blue-200 dark:hover:border-white/10"
                 >
                   <div className="w-16 h-16 flex items-center justify-center relative">
-                    {item.type === 'folder' ? (
-                      <Folder size={64} strokeWidth={1} fill="currentColor" className="text-blue-400 dark:text-blue-500/80 drop-shadow-md" />
-                    ) : (
-                      <div className="relative">
-                        <FileCode2 size={56} strokeWidth={1} className="text-emerald-500" />
-                        <div className="absolute bottom-1 -right-2 bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold px-1.5 rounded uppercase border border-emerald-200 dark:border-emerald-700">
-                          EXE
-                        </div>
-                      </div>
-                    )}
+                    {renderIcon(item.type, true)}
                   </div>
                   <span className="text-sm font-medium text-center truncate w-full group-hover:text-blue-600 dark:group-hover:text-blue-400">
                     {item.name}
@@ -277,16 +401,12 @@ export default function ProjectsApp() {
                   className="grid grid-cols-12 gap-4 items-center p-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-white/5 cursor-default transition-colors border border-transparent hover:border-blue-200 dark:hover:border-white/10"
                 >
                   <div className="col-span-6 sm:col-span-5 flex items-center gap-3">
-                    {item.type === 'folder' ? (
-                      <Folder size={20} fill="currentColor" className="text-blue-400" />
-                    ) : (
-                      <FileCode2 size={20} className="text-emerald-500" />
-                    )}
+                    {renderIcon(item.type, false)}
                     <span className="text-sm font-medium truncate">{item.name}</span>
                   </div>
                   <div className="col-span-3 hidden sm:block text-sm text-black/50 dark:text-white/50 truncate">{item.date}</div>
                   <div className="col-span-3 hidden md:block text-sm text-black/50 dark:text-white/50 truncate">
-                    {item.type === 'folder' ? 'Carpeta de archivos' : 'Aplicación Web (.exe)'}
+                    {getTypeLabel(item.type)}
                   </div>
                   <div className="col-span-6 sm:col-span-4 md:col-span-1 text-right text-sm text-black/50 dark:text-white/50">
                     {item.size}

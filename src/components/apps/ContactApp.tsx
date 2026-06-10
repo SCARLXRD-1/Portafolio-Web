@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Mail } from 'lucide-react';
+import { Mail, CheckCircle, Loader2 } from 'lucide-react';
+import { insforge } from '@/lib/insforge';
 
 const GithubIcon = ({ size = 18 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -27,6 +28,37 @@ const TwitterIcon = ({ size = 18 }) => (
 
 export default function ContactApp() {
   const t = useTranslations('Dock');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email || !formData.message) return;
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await insforge.database
+        .from('contact_messages')
+        .insert([{
+          name: formData.name,
+          email: formData.email,
+          subject: 'Contacto desde Portafolio',
+          message: formData.message,
+          status: 'unread'
+        }]);
+
+      if (error) throw error;
+      
+      setIsSuccess(true);
+      setFormData({ name: '', email: '', message: '' });
+      setTimeout(() => setIsSuccess(false), 5000);
+    } catch (err: any) {
+      alert('Error enviando mensaje: ' + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="h-full w-full bg-[#0d0d0d]/90 text-white overflow-y-auto p-8">
@@ -44,50 +76,76 @@ export default function ContactApp() {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Contact Form */}
           <div className="flex-1 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-            <form 
-              className="space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                alert('Servicio de correo en desarrollo. Pronto estará disponible.');
-              }}
-            >
-              <div>
-                <label className="block text-sm font-medium text-white/70 mb-1" htmlFor="name">Nombre</label>
-                <input 
-                  type="text" 
-                  id="name"
-                  required
-                  className="h-10 w-full bg-white/5 rounded-lg border border-white/10 px-3 text-sm text-white focus:outline-none focus:border-purple-500/50" 
-                  placeholder="Tu nombre"
-                />
+            {isSuccess ? (
+              <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-center space-y-4 animate-in fade-in zoom-in duration-500">
+                <div className="w-16 h-16 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mb-2">
+                  <CheckCircle size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-white">¡Mensaje Enviado!</h3>
+                <p className="text-white/60 max-w-sm">
+                  Gracias por contactarme. He recibido tu mensaje y te responderé lo más pronto posible al correo {formData.email || 'proporcionado'}.
+                </p>
+                <button 
+                  onClick={() => setIsSuccess(false)}
+                  className="mt-6 px-6 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors border border-white/10"
+                >
+                  Enviar otro mensaje
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-white/70 mb-1" htmlFor="email">Email</label>
-                <input 
-                  type="email" 
-                  id="email"
-                  required
-                  className="h-10 w-full bg-white/5 rounded-lg border border-white/10 px-3 text-sm text-white focus:outline-none focus:border-purple-500/50" 
-                  placeholder="tu@email.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-white/70 mb-1" htmlFor="message">Mensaje</label>
-                <textarea 
-                  id="message"
-                  required
-                  rows={4}
-                  className="w-full bg-white/5 rounded-lg border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 resize-none" 
-                  placeholder="Escribe tu mensaje aquí..."
-                />
-              </div>
-              <button 
-                type="submit"
-                className="h-10 px-6 bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-lg transition-colors border border-purple-400 mt-4"
+            ) : (
+              <form 
+                className="space-y-4"
+                onSubmit={handleSubmit}
               >
-                Enviar Mensaje
-              </button>
-            </form>
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-1" htmlFor="name">Nombre</label>
+                  <input 
+                    type="text" 
+                    id="name"
+                    required
+                    value={formData.name}
+                    onChange={e => setFormData({...formData, name: e.target.value})}
+                    className="h-10 w-full bg-white/5 rounded-lg border border-white/10 px-3 text-sm text-white focus:outline-none focus:border-purple-500/50" 
+                    placeholder="Tu nombre"
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-1" htmlFor="email">Email</label>
+                  <input 
+                    type="email" 
+                    id="email"
+                    required
+                    value={formData.email}
+                    onChange={e => setFormData({...formData, email: e.target.value})}
+                    className="h-10 w-full bg-white/5 rounded-lg border border-white/10 px-3 text-sm text-white focus:outline-none focus:border-purple-500/50" 
+                    placeholder="tu@email.com"
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-1" htmlFor="message">Mensaje</label>
+                  <textarea 
+                    id="message"
+                    required
+                    rows={4}
+                    value={formData.message}
+                    onChange={e => setFormData({...formData, message: e.target.value})}
+                    className="w-full bg-white/5 rounded-lg border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 resize-none" 
+                    placeholder="Escribe tu mensaje aquí..."
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <button 
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="h-10 px-6 bg-purple-500 hover:bg-purple-600 disabled:opacity-50 text-white font-medium rounded-lg transition-colors border border-purple-400 mt-4 flex items-center gap-2"
+                >
+                  {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : null}
+                  {isSubmitting ? 'Enviando...' : 'Enviar Mensaje'}
+                </button>
+              </form>
+            )}
           </div>
 
           {/* Social Links */}

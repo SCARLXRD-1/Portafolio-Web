@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { create } from 'zustand';
-import { Globe, RefreshCw, ChevronLeft, ChevronRight, Home } from 'lucide-react';
+import { Globe, RefreshCw, ChevronLeft, ChevronRight, Home, ExternalLink } from 'lucide-react';
 
 // Store to allow other apps to tell the browser what URL to open
 interface BrowserState {
@@ -77,9 +77,20 @@ export default function BrowserApp() {
         <button 
           onClick={() => navigate('')}
           className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 text-black/80 dark:text-white/80 transition-colors"
+          title="Ir al inicio"
         >
           <Home size={18} />
         </button>
+
+        <a 
+          href={url || '#'}
+          target="_blank"
+          rel="noreferrer"
+          className={`p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors ${url ? 'text-blue-500' : 'text-black/30 dark:text-white/30 pointer-events-none'}`}
+          title="Abrir en pestaña nueva"
+        >
+          <ExternalLink size={18} />
+        </a>
       </div>
 
       {/* Browser Content */}

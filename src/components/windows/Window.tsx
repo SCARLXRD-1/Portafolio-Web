@@ -119,7 +119,6 @@ export default function Window({ id, children }: WindowProps) {
         }
       }}
       onPointerDownCapture={() => focusWindow(id)}
-      layout={!isResizing}
       initial={{ scale: 0.8, opacity: 0, y: 20, top: '10%', left: '20%' }}
       animate={winState.isMinimized ? {
         scale: 0.1,
@@ -149,14 +148,14 @@ export default function Window({ id, children }: WindowProps) {
             ? { duration: 0.45, ease: [0.55, 0.06, 0.68, 0.19] }
             : { type: 'spring', stiffness: 300, damping: 25, mass: 0.8 }
       }
-      style={{ zIndex: winState.zIndex }}
-      className={`absolute rounded-xl overflow-hidden bg-white/90 dark:bg-black/60 backdrop-blur-2xl border border-black/10 dark:border-white/10 shadow-2xl flex-col pointer-events-auto transition-colors duration-500 ${
+      style={{ zIndex: winState.zIndex, willChange: 'transform, opacity' }}
+      className={`absolute rounded-xl overflow-hidden bg-white/95 dark:bg-[#111111]/90 backdrop-blur-md border border-black/10 dark:border-white/10 shadow-2xl flex-col pointer-events-auto ${
         isMaximized || snapState !== 'none' ? 'rounded-none' : ''
       }`}
     >
           {/* Title Bar */}
           <div 
-            className={`h-10 flex items-center px-4 bg-black/5 dark:bg-white/5 border-b border-black/10 dark:border-white/10 select-none transition-colors duration-500 ${!isMaximized ? 'cursor-move' : ''}`}
+            className={`h-10 flex items-center px-4 bg-black/5 dark:bg-white/5 border-b border-black/10 dark:border-white/10 select-none ${!isMaximized ? 'cursor-move' : ''}`}
             onDoubleClick={() => maximizeWindow(id)}
             onPointerDown={(e) => {
               if (!isMaximized) dragControls.start(e);
@@ -189,7 +188,7 @@ export default function Window({ id, children }: WindowProps) {
             </div>
             
             {/* Title */}
-            <div className="flex-1 text-center text-xs font-semibold text-black/80 dark:text-white/80 -ml-16 tracking-wide transition-colors duration-500">
+            <div className="flex-1 text-center text-xs font-semibold text-black/80 dark:text-white/80 -ml-16 tracking-wide">
               {t(id)}
             </div>
           </div>

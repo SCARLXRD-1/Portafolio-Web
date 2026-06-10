@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Admin Upload" ON storage.objects; DROP POLICY IF EXISTS "Admin Update" ON storage.objects; DROP POLICY IF EXISTS "Admin Delete" ON storage.objects; CREATE POLICY "Admin Full Storage Access" ON storage.objects FOR ALL TO authenticated USING (true) WITH CHECK (true);

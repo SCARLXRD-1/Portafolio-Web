@@ -1,60 +1,36 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Dock from './Dock';
 import WindowManager from '../windows/WindowManager';
-import { Wifi, BatteryMedium, Volume2, Search } from 'lucide-react';
 import LockScreen from './LockScreen';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useWindowStore } from '@/store/useWindowStore';
-import LanguageSwitcher from './LanguageSwitcher';
 import SplashScreen from './SplashScreen';
-import { useMobileDetect } from '@/hooks/useMobileDetect';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import TopMenuBar from './TopMenuBar';
-import ThemeToggle from './ThemeToggle';
 import NotificationCenter from './NotificationCenter';
 import ContextMenu from './ContextMenu';
 import Spotlight from './Spotlight';
 import OfflineDetector from './OfflineDetector';
 import { useContextMenuStore } from '@/store/useContextMenuStore';
-import Lottie, { LottieRefCurrentProps } from 'lottie-react';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
 
 export default function Desktop() {
   const windows = useWindowStore((state) => state.windows);
+  const { wallpaper_url, fetchSettings } = useSettingsStore();
   const [isMouseNearBottom, setIsMouseNearBottom] = useState(false);
-  const [animationData, setAnimationData] = useState<any>(null);
-  const lottieRef = useRef<LottieRefCurrentProps>(null);
   const initializeAuth = useAuthStore(state => state.initialize);
 
   useEffect(() => {
     initializeAuth();
-    // Fetch the Lottie json file (~62KB) asynchronously to avoid blocking the initial JS bundle
-    fetch('/fondo.json')
-      .then(res => res.json())
-      .then(data => setAnimationData(data))
-      .catch(err => console.error('Error loading background animation:', err));
-  }, []);
+    fetchSettings();
+  }, [initializeAuth, fetchSettings]);
 
   const isAnyMaximized = Object.values(windows).some(
     (w) => w.isOpen && !w.isMinimized && w.isMaximized
   );
-
-  // Pause Lottie when any window is visible to free GPU/CPU
-  const isAnyWindowVisible = useMemo(
-    () => Object.values(windows).some((w) => w.isOpen && !w.isMinimized),
-    [windows]
-  );
-
-  useEffect(() => {
-    if (!lottieRef.current) return;
-    if (isAnyWindowVisible) {
-      lottieRef.current.pause();
-    } else {
-      lottieRef.current.play();
-    }
-  }, [isAnyWindowVisible]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -71,10 +47,8 @@ export default function Desktop() {
   }, []);
 
   const shouldHideDock = isAnyMaximized && !isMouseNearBottom;
-  const [isMounted, setIsMounted] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [isLocked, setIsLocked] = useState(true);
-  const isMobile = useMobileDetect();
   const { openMenu } = useContextMenuStore();
 
   useKeyboardShortcuts();
@@ -100,19 +74,19 @@ export default function Desktop() {
       
       <OfflineDetector />
 
-      {/* Lottie Background Animation (Optimized json) */}
-      <div className="absolute inset-0 z-0 overflow-hidden bg-black transition-colors duration-500">
-        {animationData && (
-          <Lottie
-            lottieRef={lottieRef}
-            animationData={animationData}
-            loop={true}
-            className="absolute top-1/2 left-1/2 min-w-[100vw] min-h-[100vh] w-auto h-auto max-w-none -translate-x-1/2 -translate-y-1/2 opacity-80 pointer-events-none"
-            style={{ objectFit: 'cover' }}
-          />
-        )}
-        <div className="absolute inset-0 bg-black/40 pointer-events-none transition-colors duration-500" />
-      </div>
+      {wallpaper_url ? (
+        <div className="absolute inset-0 z-0">
+          <img src={wallpaper_url} alt="Wallpaper" className="w-full h-full object-cover" />
+        </div>
+      ) : (
+        <div className="absolute inset-0 z-0 overflow-hidden bg-black flex justify-center items-center">
+          <div className="wave">
+            <div className="wave-item"></div>
+            <div className="wave-item"></div>
+            <div className="wave-item"></div>
+          </div>
+        </div>
+      )}
 
       <NotificationCenter />
       <ContextMenu />

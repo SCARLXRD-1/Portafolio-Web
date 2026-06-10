@@ -8,6 +8,8 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { insforge } from '@/lib/insforge';
 import { useSystemSounds } from '@/hooks/useSystemSounds';
 import ThemeToggle from '@/components/desktop/ThemeToggle';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -184,6 +186,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="flex-1 overflow-y-auto p-4 md:p-8 relative">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(16,185,129,0.05),transparent_50%)] pointer-events-none" />
           <div className="relative z-10 h-full">
+            <ToastContainer position="top-right" theme="dark" autoClose={3000} hideProgressBar={false} />
             {children}
           </div>
         </div>

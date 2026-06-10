@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Admin insert/update/delete for portfolio assets" ON storage.objects; DROP POLICY IF EXISTS "Admin Full Storage Access" ON storage.objects; CREATE POLICY "Admin Full Storage Access" ON storage.objects FOR ALL TO authenticated USING (true) WITH CHECK (true);

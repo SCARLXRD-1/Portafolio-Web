@@ -12,6 +12,7 @@ interface LockScreenProps {
 
 import { insforge } from '@/lib/insforge';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
 
 export default function LockScreen({ onUnlock }: LockScreenProps) {
   const [time, setTime] = useState(() => new Date());
@@ -19,6 +20,7 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
   const t = useTranslations('Terminal'); // using existing translations or generic text
   const { playLogin, playClick } = useSystemSounds();
   const { user, isAdmin } = useAuthStore();
+  const { username } = useSettingsStore();
 
   useEffect(() => {
     setIsMounted(true);
@@ -59,7 +61,7 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
           <User size={48} className="text-white/50" />
         </div>
         
-        <h2 className="text-2xl font-semibold mb-6">AKASHI DEV</h2>
+        <h2 className="text-2xl font-semibold mb-6">{username || 'AKASHI DEV'}</h2>
 
         <form onSubmit={(e) => { e.preventDefault(); handleUnlock(); }} className="flex flex-col items-center gap-4 w-64">
           <div className="relative w-full">

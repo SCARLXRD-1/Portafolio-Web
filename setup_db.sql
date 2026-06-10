@@ -249,3 +249,10 @@ CREATE POLICY "Admin insert/update/delete for portfolio assets" ON storage.objec
 -- RELOAD SCHEMA CACHE
 -- ============================================================
 NOTIFY pgrst, 'reload schema';
+
+-- Storage Bucket Policies
+INSERT INTO storage.buckets (id, name, public) VALUES ('portfolio-assets', 'portfolio-assets', true) ON CONFLICT (id) DO NOTHING;
+CREATE POLICY "Public Access" ON storage.objects FOR SELECT TO public USING (bucket_id = 'portfolio-assets');
+CREATE POLICY "Admin Upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'portfolio-assets' AND auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c');
+CREATE POLICY "Admin Update" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'portfolio-assets' AND auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c');
+CREATE POLICY "Admin Delete" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'portfolio-assets' AND auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c');
