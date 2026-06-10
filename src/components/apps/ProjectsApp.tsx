@@ -27,6 +27,7 @@ interface FileSystemItem {
 export default function ProjectsApp() {
   const t = useTranslations('Dock');
   const locale = useLocale();
+  const isEs = locale === 'es';
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [history, setHistory] = useState<(string | null)[]>([null]);
   const [historyIndex, setHistoryIndex] = useState(0);
