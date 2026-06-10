@@ -8,7 +8,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { insforge } from '@/lib/insforge';
 import { useSystemSounds } from '@/hooks/useSystemSounds';
 import ThemeToggle from '@/components/desktop/ThemeToggle';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -22,6 +22,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  useEffect(() => {
+    if (accessDenied && deniedEmail) {
+      toast.error(`Acceso denegado: la cuenta ${deniedEmail} no es administrador.`);
+    }
+  }, [accessDenied, deniedEmail]);
 
   const handleGithubLogin = async () => {
     playClick();
@@ -59,6 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user || !isAdmin) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50 dark:bg-[#0a0a0a] text-black dark:text-white relative overflow-hidden">
+        <ToastContainer position="top-right" theme="dark" autoClose={5000} hideProgressBar={false} />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(16,185,129,0.05),transparent_50%)] pointer-events-none" />
         
         {/* Access Denied Message */}
