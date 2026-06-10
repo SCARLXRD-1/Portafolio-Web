@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Mail, CheckCircle, Loader2 } from 'lucide-react';
 import { insforge } from '@/lib/insforge';
 

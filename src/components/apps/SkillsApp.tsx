@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Code2, Server, Layout, Database, Wrench, Paintbrush, Loader2 } from 'lucide-react';
 import { insforge } from '@/lib/insforge';
 
