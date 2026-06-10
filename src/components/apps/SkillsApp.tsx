@@ -7,6 +7,7 @@ import { insforge } from '@/lib/insforge';
 
 export default function SkillsApp() {
   const t = useTranslations('Dock');
+  const locale = useLocale();
   const [skills, setSkills] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -53,7 +54,7 @@ export default function SkillsApp() {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t('skills')}</h1>
-            <p className="text-white/50 mt-1">Tecnologías y herramientas que domino.</p>
+            <p className="text-white/50 mt-1">{locale === 'es' ? 'Tecnologías y herramientas que domino.' : 'Technologies and tools I master.'}</p>
           </div>
         </header>
 
@@ -63,7 +64,7 @@ export default function SkillsApp() {
           </div>
         ) : skills.length === 0 ? (
           <div className="text-center py-20 text-white/50 border border-white/10 rounded-2xl bg-white/5 backdrop-blur-sm">
-            No hay habilidades registradas.
+            {locale === 'es' ? 'No hay habilidades registradas.' : 'No skills registered.'}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

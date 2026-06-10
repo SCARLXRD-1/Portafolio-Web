@@ -11,6 +11,7 @@ export default function SettingsApp() {
   const t = useTranslations('Dock');
   const { theme, setTheme } = useThemeStore();
   const locale = useLocale();
+  const isEs = locale === 'es';
   const router = useRouter();
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
@@ -29,8 +30,8 @@ export default function SettingsApp() {
             <Settings className="text-gray-600 dark:text-gray-400 animate-[spin_4s_linear_infinite]" size={28} />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Ajustes del Sistema</h1>
-            <p className="text-black/50 dark:text-white/50 mt-1">Personaliza tu experiencia en AKASHI OS.</p>
+            <h1 className="text-3xl font-bold tracking-tight">{isEs ? 'Ajustes del Sistema' : 'System Settings'}</h1>
+            <p className="text-black/50 dark:text-white/50 mt-1">{isEs ? 'Personaliza tu experiencia en AKASHI OS.' : 'Customize your experience in AKASHI OS.'}</p>
           </div>
         </header>
 
@@ -40,7 +41,7 @@ export default function SettingsApp() {
           <section>
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Palette size={18} className="text-blue-500" />
-              Apariencia
+              {isEs ? 'Apariencia' : 'Appearance'}
             </h2>
             <div className="bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
               <button 
@@ -50,8 +51,8 @@ export default function SettingsApp() {
                 <div className="flex items-center gap-3">
                   <Sun size={20} className="text-orange-500" />
                   <div>
-                    <div className="font-medium">Modo Claro</div>
-                    <div className="text-xs text-black/50 dark:text-white/50">Tema brillante de alto contraste</div>
+                    <div className="font-medium">{isEs ? 'Modo Claro' : 'Light Mode'}</div>
+                    <div className="text-xs text-black/50 dark:text-white/50">{isEs ? 'Tema brillante de alto contraste' : 'High contrast bright theme'}</div>
                   </div>
                 </div>
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${theme === 'light' ? 'border-blue-500' : 'border-black/20 dark:border-white/20'}`}>
@@ -66,8 +67,8 @@ export default function SettingsApp() {
                 <div className="flex items-center gap-3">
                   <Moon size={20} className="text-indigo-400" />
                   <div>
-                    <div className="font-medium">Modo Oscuro</div>
-                    <div className="text-xs text-black/50 dark:text-white/50">Tema oscuro amigable para la vista</div>
+                    <div className="font-medium">{isEs ? 'Modo Oscuro' : 'Dark Mode'}</div>
+                    <div className="text-xs text-black/50 dark:text-white/50">{isEs ? 'Tema oscuro amigable para la vista' : 'Eye-friendly dark theme'}</div>
                   </div>
                 </div>
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${theme === 'dark' ? 'border-blue-500' : 'border-black/20 dark:border-white/20'}`}>
@@ -93,7 +94,7 @@ export default function SettingsApp() {
                   <span className="text-xl">🇪🇸</span>
                   <div>
                     <div className="font-medium">Español</div>
-                    <div className="text-xs text-black/50 dark:text-white/50">Idioma principal</div>
+                    <div className="text-xs text-black/50 dark:text-white/50">{isEs ? 'Idioma principal' : 'Main language'}</div>
                   </div>
                 </div>
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${locale === 'es' ? 'border-blue-500' : 'border-black/20 dark:border-white/20'}`}>
@@ -110,7 +111,7 @@ export default function SettingsApp() {
                   <span className="text-xl">🇺🇸</span>
                   <div>
                     <div className="font-medium">English</div>
-                    <div className="text-xs text-black/50 dark:text-white/50">Second language</div>
+                    <div className="text-xs text-black/50 dark:text-white/50">{isEs ? 'Idioma secundario' : 'Second language'}</div>
                   </div>
                 </div>
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${locale === 'en' ? 'border-blue-500' : 'border-black/20 dark:border-white/20'}`}>
@@ -124,7 +125,7 @@ export default function SettingsApp() {
           <section>
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Cpu size={18} className="text-rose-500" />
-              Especificaciones del Sistema
+              {isEs ? 'Especificaciones del Sistema' : 'System Specifications'}
             </h2>
             <div className="bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
               <div className="p-4 border-b border-black/5 dark:border-white/5 flex items-center gap-4">
@@ -132,7 +133,7 @@ export default function SettingsApp() {
                   <Cpu size={20} className="text-rose-500" />
                 </div>
                 <div>
-                  <div className="text-xs text-black/50 dark:text-white/50 uppercase font-bold tracking-wider mb-0.5">Procesador</div>
+                  <div className="text-xs text-black/50 dark:text-white/50 uppercase font-bold tracking-wider mb-0.5">{isEs ? 'Procesador' : 'Processor'}</div>
                   <div className="font-medium">AKASHI Neural Engine v2.0</div>
                 </div>
               </div>
@@ -141,7 +142,7 @@ export default function SettingsApp() {
                   <MemoryStick size={20} className="text-emerald-500" />
                 </div>
                 <div>
-                  <div className="text-xs text-black/50 dark:text-white/50 uppercase font-bold tracking-wider mb-0.5">Memoria</div>
+                  <div className="text-xs text-black/50 dark:text-white/50 uppercase font-bold tracking-wider mb-0.5">{isEs ? 'Memoria' : 'Memory'}</div>
                   <div className="font-medium">32 GB Unified Memory</div>
                 </div>
               </div>
@@ -150,7 +151,7 @@ export default function SettingsApp() {
                   <HardDrive size={20} className="text-amber-500" />
                 </div>
                 <div>
-                  <div className="text-xs text-black/50 dark:text-white/50 uppercase font-bold tracking-wider mb-0.5">Almacenamiento</div>
+                  <div className="text-xs text-black/50 dark:text-white/50 uppercase font-bold tracking-wider mb-0.5">{isEs ? 'Almacenamiento' : 'Storage'}</div>
                   <div className="font-medium">1 TB NVMe SSD</div>
                 </div>
               </div>
@@ -161,14 +162,14 @@ export default function SettingsApp() {
           <section>
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Network size={18} className="text-sky-500" />
-              Conexión
+              {isEs ? 'Conexión' : 'Connection'}
             </h2>
             <div className="bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4 justify-between shadow-sm">
               <div className="flex items-center gap-3">
                 <Globe size={24} className="text-sky-500" />
                 <div>
-                  <div className="font-medium">Red Global</div>
-                  <div className="text-xs text-green-600 dark:text-green-400 font-medium">Conectado y Seguro</div>
+                  <div className="font-medium">{isEs ? 'Red Global' : 'Global Network'}</div>
+                  <div className="text-xs text-green-600 dark:text-green-400 font-medium">{isEs ? 'Conectado y Seguro' : 'Connected and Secure'}</div>
                 </div>
               </div>
               <div className="text-xs bg-black/5 dark:bg-white/10 px-3 py-1.5 rounded-full font-mono">
@@ -181,13 +182,13 @@ export default function SettingsApp() {
           <section>
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Monitor size={18} className="text-teal-500" />
-              Fondo de Pantalla
+              {isEs ? 'Fondo de Pantalla' : 'Wallpaper'}
             </h2>
             <div className="bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-sm">
               <MonitorSmartphone size={40} className="text-black/20 dark:text-white/20 mb-3" />
               <p className="text-black/50 dark:text-white/50 text-sm">
-                Actualmente estás utilizando el fondo interactivo por defecto.<br/>
-                La galería de fondos personalizados estará disponible en una próxima actualización.
+                {isEs ? 'Actualmente estás utilizando el fondo interactivo por defecto.' : 'You are currently using the default interactive wallpaper.'}<br/>
+                {isEs ? 'La galería de fondos personalizados estará disponible en una próxima actualización.' : 'The custom wallpaper gallery will be available in a future update.'}
               </p>
             </div>
           </section>
@@ -199,9 +200,11 @@ export default function SettingsApp() {
             <div className="flex flex-col items-center justify-center text-center opacity-60 hover:opacity-100 transition-opacity">
               <Info size={24} className="mb-2 text-black/50 dark:text-white/50" />
               <h3 className="font-bold text-lg">AKASHI OS</h3>
-              <p className="text-sm text-black/50 dark:text-white/50">Versión 1.0.0 (Build 2026)</p>
+              <p className="text-sm text-black/50 dark:text-white/50">{isEs ? 'Versión 1.0.0 (Build 2026)' : 'Version 1.0.0 (Build 2026)'}</p>
               <p className="text-xs text-black/40 dark:text-white/40 mt-2 max-w-sm">
-                Un entorno de escritorio web interactivo creado para demostrar habilidades técnicas de desarrollo frontend, diseño UI/UX y arquitectura.
+                {isEs 
+                  ? 'Un entorno de escritorio web interactivo creado para demostrar habilidades técnicas de desarrollo frontend, diseño UI/UX y arquitectura.'
+                  : 'An interactive web desktop environment created to showcase technical frontend development skills, UI/UX design, and architecture.'}
               </p>
             </div>
           </section>

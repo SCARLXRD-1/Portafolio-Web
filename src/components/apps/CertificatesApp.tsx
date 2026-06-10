@@ -4,11 +4,15 @@ import { Award, ExternalLink, Calendar, FileText, Loader2, X } from 'lucide-reac
 import { insforge } from '@/lib/insforge';
 import { useBrowserStore } from './BrowserApp';
 import { useWindowStore } from '@/store/useWindowStore';
+import { useTranslations, useLocale } from 'next-intl';
 
 export default function CertificatesApp() {
   const [certificates, setCertificates] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState<{ url: string, type: 'pdf' | 'image' } | null>(null);
+  const t = useTranslations('Dock');
+  const locale = useLocale();
+  const isEs = locale === 'es';
   
   const { navigate } = useBrowserStore();
   const { openWindow } = useWindowStore();
@@ -49,7 +53,7 @@ export default function CertificatesApp() {
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8">
           <div className="bg-white dark:bg-[#1e1e1e] border border-black/10 dark:border-white/10 shadow-2xl rounded-2xl w-full max-w-5xl h-full max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center px-4 py-3 border-b border-black/10 dark:border-white/10 bg-[#f8f9fa] dark:bg-[#252525]">
-              <span className="font-semibold text-sm">Visualizador de Certificado</span>
+              <span className="font-semibold text-sm">{isEs ? 'Visualizador de Certificado' : 'Certificate Viewer'}</span>
               <button onClick={() => setSelectedFile(null)} className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded transition-colors">
                 <X size={20} />
               </button>
@@ -77,8 +81,8 @@ export default function CertificatesApp() {
             <Award size={32} />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-black dark:text-white">Certificados</h1>
-            <p className="text-black/60 dark:text-white/60 mt-1">Validación de habilidades y conocimientos adquiridos.</p>
+            <h1 className="text-3xl font-bold text-black dark:text-white">{t('certificates')}</h1>
+            <p className="text-black/60 dark:text-white/60 mt-1">{isEs ? 'Validación de habilidades y conocimientos adquiridos.' : 'Validation of acquired skills and knowledge.'}</p>
           </div>
         </motion.div>
 
@@ -89,9 +93,9 @@ export default function CertificatesApp() {
         ) : certificates.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-black/10 dark:border-white/10 rounded-3xl bg-black/5 dark:bg-white/5">
             <Award size={48} className="text-black/20 dark:text-white/20 mb-4" />
-            <h3 className="text-xl font-medium text-black dark:text-white mb-1">No hay certificados</h3>
+            <h3 className="text-xl font-medium text-black dark:text-white mb-1">{isEs ? 'No hay certificados' : 'No certificates'}</h3>
             <p className="text-black/50 dark:text-white/50 text-sm text-center max-w-md">
-              Aún no se han añadido certificados a la plataforma.
+              {isEs ? 'Aún no se han añadido certificados a la plataforma.' : 'No certificates have been added to the platform yet.'}
             </p>
           </div>
         ) : (
@@ -113,17 +117,17 @@ export default function CertificatesApp() {
                       <button 
                         onClick={() => handleViewFile(cert.file_url)}
                         className="p-2 text-black/60 hover:text-emerald-600 dark:text-white/60 dark:hover:text-emerald-400 bg-black/5 hover:bg-emerald-500/10 dark:bg-white/5 dark:hover:bg-emerald-500/10 rounded-xl transition-all flex items-center gap-2 text-sm font-medium"
-                        title="Ver documento"
+                        title={isEs ? "Ver documento" : "View document"}
                       >
                         <FileText size={18} />
-                        <span className="hidden sm:inline">Ver Documento</span>
+                        <span className="hidden sm:inline">{isEs ? 'Ver Documento' : 'View Document'}</span>
                       </button>
                     )}
                     {cert.url && (
                       <button 
                         onClick={() => handleOpenExternal(cert.url)}
                         className="p-2 text-black/40 hover:text-blue-500 dark:text-white/40 dark:hover:text-blue-400 bg-black/5 hover:bg-blue-500/10 dark:bg-white/5 dark:hover:bg-blue-500/10 rounded-xl transition-all"
-                        title="Verificación externa"
+                        title={isEs ? "Verificación externa" : "External verification"}
                       >
                         <ExternalLink size={18} />
                       </button>

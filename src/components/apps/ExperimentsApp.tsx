@@ -8,6 +8,7 @@ import { insforge } from '@/lib/insforge';
 export default function ExperimentsApp() {
   const t = useTranslations('Dock');
   const locale = useLocale();
+  const isEs = locale === 'es';
   const [experiments, setExperiments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -41,7 +42,7 @@ export default function ExperimentsApp() {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t('experiments')}</h1>
-            <p className="text-white/50 mt-1">Exploraciones de UI/UX, animaciones y prototipos.</p>
+            <p className="text-white/50 mt-1">{isEs ? 'Exploraciones de UI/UX, animaciones y prototipos.' : 'UI/UX explorations, animations, and prototypes.'}</p>
           </div>
         </header>
 
@@ -52,9 +53,9 @@ export default function ExperimentsApp() {
         ) : experiments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/10 rounded-3xl bg-white/5">
             <Lightbulb size={48} className="text-white/20 mb-4" />
-            <h3 className="text-xl font-medium text-white mb-1">Sin experimentos</h3>
+            <h3 className="text-xl font-medium text-white mb-1">{isEs ? 'Sin experimentos' : 'No experiments'}</h3>
             <p className="text-white/50 text-sm text-center max-w-md">
-              El laboratorio está vacío en este momento.
+              {isEs ? 'El laboratorio está vacío en este momento.' : 'The laboratory is empty right now.'}
             </p>
           </div>
         ) : (

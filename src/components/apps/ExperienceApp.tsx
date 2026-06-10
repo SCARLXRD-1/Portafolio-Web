@@ -6,7 +6,9 @@ import { useLocale } from 'next-intl';
 import { insforge } from '@/lib/insforge';
 
 export default function ExperienceApp() {
+  const t = useTranslations('Dock');
   const locale = useLocale();
+  const isEs = locale === 'es';
   const [experiences, setExperiences] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -39,8 +41,8 @@ export default function ExperienceApp() {
             <Briefcase className="text-blue-500" size={24} />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Experiencia</h1>
-            <p className="text-black/50 dark:text-white/50 mt-1">Mi trayectoria profesional y académica.</p>
+            <h1 className="text-3xl font-bold tracking-tight">{t('experience')}</h1>
+            <p className="text-black/50 dark:text-white/50 mt-1">{isEs ? 'Mi trayectoria profesional y académica.' : 'My professional and academic journey.'}</p>
           </div>
         </header>
 
@@ -51,9 +53,11 @@ export default function ExperienceApp() {
         ) : experiences.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-black/10 dark:border-white/10 rounded-3xl bg-black/5 dark:bg-white/5">
             <Briefcase size={48} className="text-black/20 dark:text-white/20 mb-4" />
-            <h3 className="text-xl font-medium mb-1">No hay experiencia registrada</h3>
+            <h3 className="text-xl font-medium mb-1">{isEs ? 'No hay experiencia registrada' : 'No experience registered'}</h3>
             <p className="text-black/50 dark:text-white/50 text-sm text-center max-w-md">
-              Aún no se ha añadido información sobre la trayectoria laboral. Utiliza el panel de administración para empezar.
+              {isEs 
+                ? 'Aún no se ha añadido información sobre la trayectoria laboral. Utiliza el panel de administración para empezar.'
+                : 'No work history information has been added yet. Use the admin panel to get started.'}
             </p>
           </div>
         ) : (

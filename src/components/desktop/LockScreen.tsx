@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, ArrowRight } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useSystemSounds } from '@/hooks/useSystemSounds';
 
 interface LockScreenProps {
@@ -17,7 +17,9 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 export default function LockScreen({ onUnlock }: LockScreenProps) {
   const [time, setTime] = useState(() => new Date());
   const [isMounted, setIsMounted] = useState(false);
-  const t = useTranslations('Terminal'); // using existing translations or generic text
+  const locale = useLocale();
+  const isEs = locale === 'es';
+  const t = useTranslations('Terminal');
   const { playLogin, playClick } = useSystemSounds();
   const { user, isAdmin } = useAuthStore();
   const { username } = useSettingsStore();
@@ -67,7 +69,7 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
           <div className="relative w-full">
             <input 
               type="password" 
-              placeholder="Contraseña" 
+              placeholder={isEs ? "Contraseña" : "Password"} 
               className="w-full bg-white/10 text-white border border-white/20 focus:border-white/50 focus:bg-white/20 rounded-full py-2 pl-4 pr-10 outline-none transition-all placeholder:text-white/40"
               autoFocus
             />
@@ -84,7 +86,7 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
       {/* Bottom info */}
       <div className="absolute bottom-10 flex gap-6 text-white/50 text-sm">
       
-        <span>Presiona <kbd className="font-sans px-1 rounded bg-white/10">Enter</kbd> o la flecha para continuar</span>
+        <span>{isEs ? 'Presiona' : 'Press'} <kbd className="font-sans px-1 rounded bg-white/10">Enter</kbd> {isEs ? 'o la flecha para continuar' : 'or the arrow to continue'}</span>
       </div>
     </motion.div>
   );

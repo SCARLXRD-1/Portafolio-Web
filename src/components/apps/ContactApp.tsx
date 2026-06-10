@@ -28,6 +28,8 @@ const TwitterIcon = ({ size = 18 }) => (
 
 export default function ContactApp() {
   const t = useTranslations('Dock');
+  const locale = useLocale();
+  const isEs = locale === 'es';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -69,7 +71,7 @@ export default function ContactApp() {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t('contact')}</h1>
-            <p className="text-white/50 mt-1">Ponte en contacto conmigo para colaboraciones o consultas.</p>
+            <p className="text-white/50 mt-1">{isEs ? 'Ponte en contacto conmigo para colaboraciones o consultas.' : 'Get in touch with me for collaborations or inquiries.'}</p>
           </div>
         </header>
 
@@ -81,15 +83,17 @@ export default function ContactApp() {
                 <div className="w-16 h-16 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mb-2">
                   <CheckCircle size={32} />
                 </div>
-                <h3 className="text-xl font-bold text-white">¡Mensaje Enviado!</h3>
+                <h3 className="text-xl font-bold text-white">{isEs ? '¡Mensaje Enviado!' : 'Message Sent!'}</h3>
                 <p className="text-white/60 max-w-sm">
-                  Gracias por contactarme. He recibido tu mensaje y te responderé lo más pronto posible al correo {formData.email || 'proporcionado'}.
+                  {isEs 
+                    ? `Gracias por contactarme. He recibido tu mensaje y te responderé lo más pronto posible al correo ${formData.email || 'proporcionado'}.`
+                    : `Thanks for reaching out. I have received your message and will respond as soon as possible to the email ${formData.email || 'provided'}.`}
                 </p>
                 <button 
                   onClick={() => setIsSuccess(false)}
                   className="mt-6 px-6 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors border border-white/10"
                 >
-                  Enviar otro mensaje
+                  {isEs ? 'Enviar otro mensaje' : 'Send another message'}
                 </button>
               </div>
             ) : (
@@ -98,7 +102,7 @@ export default function ContactApp() {
                 onSubmit={handleSubmit}
               >
                 <div>
-                  <label className="block text-sm font-medium text-white/70 mb-1" htmlFor="name">Nombre</label>
+                  <label className="block text-sm font-medium text-white/70 mb-1" htmlFor="name">{isEs ? 'Nombre' : 'Name'}</label>
                   <input 
                     type="text" 
                     id="name"
@@ -106,7 +110,7 @@ export default function ContactApp() {
                     value={formData.name}
                     onChange={e => setFormData({...formData, name: e.target.value})}
                     className="h-10 w-full bg-white/5 rounded-lg border border-white/10 px-3 text-sm text-white focus:outline-none focus:border-purple-500/50" 
-                    placeholder="Tu nombre"
+                    placeholder={isEs ? "Tu nombre" : "Your name"}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -124,7 +128,7 @@ export default function ContactApp() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/70 mb-1" htmlFor="message">Mensaje</label>
+                  <label className="block text-sm font-medium text-white/70 mb-1" htmlFor="message">{isEs ? 'Mensaje' : 'Message'}</label>
                   <textarea 
                     id="message"
                     required
@@ -132,7 +136,7 @@ export default function ContactApp() {
                     value={formData.message}
                     onChange={e => setFormData({...formData, message: e.target.value})}
                     className="w-full bg-white/5 rounded-lg border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 resize-none" 
-                    placeholder="Escribe tu mensaje aquí..."
+                    placeholder={isEs ? "Escribe tu mensaje aquí..." : "Write your message here..."}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -142,7 +146,7 @@ export default function ContactApp() {
                   className="h-10 px-6 bg-purple-500 hover:bg-purple-600 disabled:opacity-50 text-white font-medium rounded-lg transition-colors border border-purple-400 mt-4 flex items-center gap-2"
                 >
                   {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : null}
-                  {isSubmitting ? 'Enviando...' : 'Enviar Mensaje'}
+                  {isSubmitting ? (isEs ? 'Enviando...' : 'Sending...') : (isEs ? 'Enviar Mensaje' : 'Send Message')}
                 </button>
               </form>
             )}
@@ -151,7 +155,7 @@ export default function ContactApp() {
           {/* Social Links */}
           <div className="w-full md:w-64 space-y-4">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-              <h3 className="text-lg font-semibold mb-4 text-white/90">Redes Sociales</h3>
+              <h3 className="text-lg font-semibold mb-4 text-white/90">{isEs ? 'Redes Sociales' : 'Social Networks'}</h3>
               <div className="space-y-3">
                 {[
                   { icon: <GithubIcon size={18} />, label: 'GitHub', href: 'https://github.com/SCARLXRD-1' },

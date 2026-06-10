@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { create } from 'zustand';
 import { Globe, RefreshCw, ChevronLeft, ChevronRight, Home, ExternalLink } from 'lucide-react';
+import { useLocale } from 'next-intl';
 
 // Store to allow other apps to tell the browser what URL to open
 interface BrowserState {
@@ -17,6 +18,8 @@ export const useBrowserStore = create<BrowserState>((set) => ({
 
 export default function BrowserApp() {
   const { url, navigate } = useBrowserStore();
+  const locale = useLocale();
+  const isEs = locale === 'es';
   const [inputUrl, setInputUrl] = useState(url);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -70,14 +73,14 @@ export default function BrowserApp() {
             onChange={(e) => setInputUrl(e.target.value)}
             onKeyDown={handleKeyDown}
             className="w-full bg-transparent text-sm outline-none text-black dark:text-white placeholder:text-black/40 dark:placeholder:text-white/40"
-            placeholder="Introduce una URL o selecciona un proyecto"
+            placeholder={isEs ? "Introduce una URL o selecciona un proyecto" : "Enter a URL or select a project"}
           />
         </div>
 
         <button 
           onClick={() => navigate('')}
           className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 text-black/80 dark:text-white/80 transition-colors"
-          title="Ir al inicio"
+          title={isEs ? "Ir al inicio" : "Go to home"}
         >
           <Home size={18} />
         </button>
@@ -87,7 +90,7 @@ export default function BrowserApp() {
           target="_blank"
           rel="noreferrer"
           className={`p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors ${url ? 'text-blue-500' : 'text-black/30 dark:text-white/30 pointer-events-none'}`}
-          title="Abrir en pestaña nueva"
+          title={isEs ? "Abrir en pestaña nueva" : "Open in new tab"}
         >
           <ExternalLink size={18} />
         </a>
@@ -98,9 +101,12 @@ export default function BrowserApp() {
         {url === '' ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#f8f9fa] dark:bg-[#121212] z-10 text-center px-4">
             <Globe size={64} className="text-black/10 dark:text-white/10 mb-6" />
-            <h2 className="text-xl font-medium text-black/60 dark:text-white/60 mb-2">Navegador Web</h2>
+            <h2 className="text-xl font-medium text-black/60 dark:text-white/60 mb-2">{isEs ? 'Navegador Web' : 'Web Browser'}</h2>
             <p className="text-sm text-black/40 dark:text-white/40 max-w-sm">
-              Ve a la aplicación de <span className="font-semibold text-blue-500">Proyectos</span> y dale doble clic a un proyecto para visualizarlo aquí.
+              {isEs 
+                ? <>Ve a la aplicación de <span className="font-semibold text-blue-500">Proyectos</span> y dale doble clic a un proyecto para visualizarlo aquí.</>
+                : <>Go to the <span className="font-semibold text-blue-500">Projects</span> application and double click a project to view it here.</>
+              }
             </p>
           </div>
         ) : (
@@ -108,7 +114,7 @@ export default function BrowserApp() {
             {isLoading && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-white dark:bg-[#1a1a1a] z-10">
                 <RefreshCw size={24} className="animate-spin text-emerald-500 mb-4" />
-                <p className="text-sm text-black/50 dark:text-white/50">Cargando página...</p>
+                <p className="text-sm text-black/50 dark:text-white/50">{isEs ? 'Cargando página...' : 'Loading page...'}</p>
               </div>
             )}
             <iframe

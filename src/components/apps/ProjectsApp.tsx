@@ -49,8 +49,8 @@ export default function ProjectsApp() {
         
         data.forEach(proj => {
           const folderId = proj.id;
-          const projName = (locale === 'es' ? proj.title_es : proj.title_en) || 'Sin título';
-          const projDesc = (locale === 'es' ? proj.description_es : proj.description_en) || '';
+          const projName = (isEs ? proj.title_es : proj.title_en) || (isEs ? 'Sin título' : 'Untitled');
+          const projDesc = (isEs ? proj.description_es : proj.description_en) || '';
           const dateStr = new Date(proj.created_at).toLocaleDateString();
           
           // 1. Create the project folder
@@ -66,7 +66,7 @@ export default function ProjectsApp() {
           // 2. Create the executable (.exe)
           fsItems.push({
             id: folderId + '-exe',
-            name: 'Lanzar App.exe',
+            name: isEs ? 'Lanzar App.exe' : 'Launch App.exe',
             type: 'project',
             parentId: folderId,
             url: proj.demo_url || proj.github_url || 'https://github.com',
@@ -77,10 +77,12 @@ export default function ProjectsApp() {
           // 3. Create the description text (.txt)
           fsItems.push({
             id: folderId + '-txt',
-            name: 'Acerca de.txt',
+            name: isEs ? 'Acerca de.txt' : 'About.txt',
             type: 'text',
             parentId: folderId,
-            content: `PROYECTO: ${projName}\n\nDESCRIPCIÓN:\n${projDesc}\n\nTECNOLOGÍAS:\n${proj.technologies?.join(', ') || 'N/A'}\n\nGITHUB: ${proj.github_url || 'N/A'}\nDEMO: ${proj.demo_url || 'N/A'}`,
+            content: isEs 
+              ? `PROYECTO: ${projName}\n\nDESCRIPCIÓN:\n${projDesc}\n\nTECNOLOGÍAS:\n${proj.technologies?.join(', ') || 'N/A'}\n\nGITHUB: ${proj.github_url || 'N/A'}\nDEMO: ${proj.demo_url || 'N/A'}`
+              : `PROJECT: ${projName}\n\nDESCRIPTION:\n${projDesc}\n\nTECHNOLOGIES:\n${proj.technologies?.join(', ') || 'N/A'}\n\nGITHUB: ${proj.github_url || 'N/A'}\nDEMO: ${proj.demo_url || 'N/A'}`,
             date: dateStr,
             size: '4 KB'
           });
@@ -90,7 +92,7 @@ export default function ProjectsApp() {
             proj.image_urls.forEach((imgUrl: string, idx: number) => {
               fsItems.push({
                 id: folderId + '-img-' + idx,
-                name: `captura_${idx + 1}.png`,
+                name: isEs ? `captura_${idx + 1}.png` : `screenshot_${idx + 1}.png`,
                 type: 'image',
                 parentId: folderId,
                 url: imgUrl,
@@ -145,10 +147,11 @@ export default function ProjectsApp() {
 
   // Compute breadcrumbs
   const getBreadcrumbs = () => {
-    if (currentFolderId === 'starred') return [{ id: 'starred', name: 'Destacados' }];
-    if (currentFolderId === 'local_c') return [{ id: 'local_c', name: 'Disco Local (C:)' }];
+    const isEs = locale === 'es';
+    if (currentFolderId === 'starred') return [{ id: 'starred', name: isEs ? 'Destacados' : 'Starred' }];
+    if (currentFolderId === 'local_c') return [{ id: 'local_c', name: isEs ? 'Disco Local (C:)' : 'Local Disk (C:)' }];
 
-    const crumbs = [{ id: null, name: 'Inicio' }];
+    const crumbs = [{ id: null, name: isEs ? 'Inicio' : 'Home' }];
     let current = currentFolderId;
     const path = [];
     
@@ -195,11 +198,12 @@ export default function ProjectsApp() {
   };
 
   const getTypeLabel = (type: FileType) => {
+    const isEs = locale === 'es';
     switch (type) {
-      case 'folder': return 'Carpeta de archivos';
-      case 'project': return 'Aplicación (.exe)';
-      case 'text': return 'Documento de texto (.txt)';
-      case 'image': return 'Imagen PNG (.png)';
+      case 'folder': return isEs ? 'Carpeta de archivos' : 'File Folder';
+      case 'project': return isEs ? 'Aplicación (.exe)' : 'Application (.exe)';
+      case 'text': return isEs ? 'Documento de texto (.txt)' : 'Text Document (.txt)';
+      case 'image': return isEs ? 'Imagen PNG (.png)' : 'PNG Image (.png)';
     }
   };
 
@@ -247,12 +251,12 @@ export default function ProjectsApp() {
         sm:relative sm:flex w-56 border-r border-black/10 dark:border-white/10 bg-[#f8f9fa] dark:bg-[#181818] flex-col p-3 shrink-0 h-full shadow-2xl sm:shadow-none transition-transform
       `}>
         <div className="flex justify-between items-center sm:hidden mb-4 px-3">
-          <span className="font-bold text-sm">Menú</span>
+          <span className="font-bold text-sm">{isEs ? 'Menú' : 'Menu'}</span>
           <button onClick={() => setIsMobileMenuOpen(false)} className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded">
             <X size={18} />
           </button>
         </div>
-        <div className="text-xs font-bold text-black/40 dark:text-white/40 uppercase tracking-wider mb-2 px-3">Favoritos</div>
+        <div className="text-xs font-bold text-black/40 dark:text-white/40 uppercase tracking-wider mb-2 px-3">{isEs ? 'Favoritos' : 'Favorites'}</div>
         <button 
           onClick={() => navigateTo(null)}
           className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
@@ -262,7 +266,7 @@ export default function ProjectsApp() {
           }`}
         >
           <Home size={16} className={currentFolderId === null ? '' : 'text-blue-500'} />
-          <span>Inicio</span>
+          <span>{isEs ? 'Inicio' : 'Home'}</span>
         </button>
         <button 
           onClick={() => navigateTo('starred')}
@@ -273,10 +277,10 @@ export default function ProjectsApp() {
           }`}
         >
           <Star size={16} className={currentFolderId === 'starred' ? '' : 'text-amber-500'} />
-          <span>Destacados</span>
+          <span>{isEs ? 'Destacados' : 'Starred'}</span>
         </button>
 
-        <div className="text-xs font-bold text-black/40 dark:text-white/40 uppercase tracking-wider mt-6 mb-2 px-3">Ubicaciones</div>
+        <div className="text-xs font-bold text-black/40 dark:text-white/40 uppercase tracking-wider mt-6 mb-2 px-3">{isEs ? 'Ubicaciones' : 'Locations'}</div>
         <button 
           onClick={() => navigateTo('local_c')}
           className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
@@ -286,7 +290,7 @@ export default function ProjectsApp() {
           }`}
         >
           <HardDrive size={16} className={currentFolderId === 'local_c' ? '' : 'text-black/50 dark:text-white/50'} />
-          <span>Disco Local (C:)</span>
+          <span>{isEs ? 'Disco Local (C:)' : 'Local Disk (C:)'}</span>
         </button>
       </aside>
 
@@ -355,7 +359,7 @@ export default function ProjectsApp() {
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-black/40 dark:text-white/40" />
               <input 
                 type="text" 
-                placeholder="Buscar..." 
+                placeholder={isEs ? "Buscar..." : "Search..."} 
                 className="w-48 bg-white dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-full pl-8 pr-4 py-1 text-sm outline-none focus:border-blue-500"
               />
             </div>
@@ -367,7 +371,7 @@ export default function ProjectsApp() {
           {currentItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-black/40 dark:text-white/40">
               <Folder size={48} className="mb-4 opacity-20" />
-              <p>Esta carpeta está vacía.</p>
+              <p>{isEs ? 'Esta carpeta está vacía.' : 'This folder is empty.'}</p>
             </div>
           ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
@@ -389,10 +393,10 @@ export default function ProjectsApp() {
           ) : (
             <div className="w-full">
               <div className="grid grid-cols-12 gap-4 border-b border-black/10 dark:border-white/10 pb-2 mb-2 text-xs font-semibold text-black/50 dark:text-white/50 uppercase tracking-wider px-4">
-                <div className="col-span-6 sm:col-span-5">Nombre</div>
-                <div className="col-span-3 hidden sm:block">Fecha de mod.</div>
-                <div className="col-span-3 hidden md:block">Tipo</div>
-                <div className="col-span-6 sm:col-span-4 md:col-span-1 text-right">Tamaño</div>
+                <div className="col-span-6 sm:col-span-5">{isEs ? 'Nombre' : 'Name'}</div>
+                <div className="col-span-3 hidden sm:block">{isEs ? 'Fecha de mod.' : 'Date modified'}</div>
+                <div className="col-span-3 hidden md:block">{isEs ? 'Tipo' : 'Type'}</div>
+                <div className="col-span-6 sm:col-span-4 md:col-span-1 text-right">{isEs ? 'Tamaño' : 'Size'}</div>
               </div>
               {currentItems.map(item => (
                 <div 
