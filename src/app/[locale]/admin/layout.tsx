@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FolderKanban, UserCircle, LogOut, Menu, X, Code2, Award, Lightbulb, Mail, Briefcase, Settings } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, UserCircle, LogOut, Menu, X, Code2, Award, Lightbulb, Mail, Briefcase, Settings, MessageCircle, FileText } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { insforge } from '@/lib/insforge';
 import { useSystemSounds } from '@/hooks/useSystemSounds';
@@ -11,7 +11,7 @@ import ThemeToggle from '@/components/desktop/ThemeToggle';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   // Extract locale from pathname (e.g. /es/admin -> es)
   const locale = pathname.split('/')[1] || 'es';
@@ -32,9 +32,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const handleGithubLogin = async () => {
     playClick();
     clearDenied();
-    const { data, error } = await insforge.auth.signInWithOAuth({
+    const { error } = await insforge.auth.signInWithOAuth({
       provider: 'github',
-      redirectTo: window.location.origin + `/${locale}/admin`,
+      redirectTo: globalThis.location.origin + `/${locale}/admin`,
     });
     if (error) {
       console.error('Error logging in:', error.message);
@@ -53,7 +53,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Certificados', href: `/${locale}/admin/certificates`, icon: Award },
     { name: 'Habilidades', href: `/${locale}/admin/skills`, icon: Code2 },
     { name: 'Laboratorio', href: `/${locale}/admin/experiments`, icon: Lightbulb },
+    { name: 'Notas (Blog)', href: `/${locale}/admin/blog`, icon: FileText },
     { name: 'Mensajes', href: `/${locale}/admin/contact`, icon: Mail },
+    { name: 'Chat en Vivo', href: `/${locale}/admin/chat`, icon: MessageCircle },
     { name: 'Sobre Mí', href: `/${locale}/admin/about`, icon: UserCircle },
     { name: 'Ajustes', href: `/${locale}/admin/settings`, icon: Settings },
   ];
@@ -113,8 +115,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       
       {/* Mobile overlay */}
       {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+        <button 
+          type="button"
+          aria-label="Close mobile menu"
+          className="fixed inset-0 bg-black/50 z-40 md:hidden w-full h-full cursor-default"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}

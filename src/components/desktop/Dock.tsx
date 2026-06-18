@@ -3,19 +3,18 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
-import { Terminal, FolderOpen, User, Code2, Mail, Lightbulb, Globe, Award, Briefcase, Settings } from 'lucide-react';
+import { Terminal, FolderOpen, User, Code2, Mail, Lightbulb, Globe, Award, Briefcase, Settings, MessageCircle, FileText } from 'lucide-react';
 import { AppId, useWindowStore } from '@/store/useWindowStore';
 import { useSystemSounds } from '@/hooks/useSystemSounds';
 
 interface DockItemProps {
-  id: AppId | 'github';
   label: string;
   icon: React.ReactNode;
   onClick: () => void;
   isOpen?: boolean;
 }
 
-function DockItem({ label, icon, onClick, isOpen }: DockItemProps) {
+function DockItem({ label, icon, onClick, isOpen }: Readonly<DockItemProps>) {
   return (
     <div className="relative group flex flex-col items-center">
       <motion.button
@@ -68,7 +67,9 @@ export default function Dock() {
     { id: 'experience' as AppId, label: t('experience'), icon: <Briefcase size={22} strokeWidth={1.5} /> },
     { id: 'about' as AppId, label: t('about'), icon: <User size={22} strokeWidth={1.5} /> },
     { id: 'skills' as AppId, label: t('skills'), icon: <Code2 size={22} strokeWidth={1.5} /> },
+    { id: 'chat' as AppId, label: t('chat'), icon: <MessageCircle size={22} strokeWidth={1.5} /> },
     { id: 'certificates' as AppId, label: t('certificates'), icon: <Award size={22} strokeWidth={1.5} /> },
+    { id: 'notes' as AppId, label: t('notes'), icon: <FileText size={22} strokeWidth={1.5} /> },
     { id: 'browser' as AppId, label: t('browser'), icon: <Globe size={22} strokeWidth={1.5} /> },
     { id: 'experiments' as AppId, label: t('experiments'), icon: <Lightbulb size={22} strokeWidth={1.5} /> },
     { id: 'contact' as AppId, label: t('contact'), icon: <Mail size={22} strokeWidth={1.5} /> },
@@ -86,7 +87,6 @@ export default function Dock() {
       {apps.map((app) => (
         <DockItem
           key={app.id}
-          id={app.id}
           label={app.label}
           icon={app.icon}
           isOpen={windows[app.id]?.isOpen}
@@ -99,7 +99,6 @@ export default function Dock() {
       
       {/* External Links */}
       <DockItem
-        id="github"
         label={t('github')}
         icon={
           <svg
@@ -116,7 +115,7 @@ export default function Dock() {
             <path d="M9 18c-4.51 2-5-2-7-2" />
           </svg>
         }
-        onClick={() => window.open('https://github.com/SCARLXRD-1', '_blank')}
+        onClick={() => window.open('https://github.com/SCARLXRD-1', '_blank', 'noopener,noreferrer')}
       />
     </motion.div>
   );

@@ -6,6 +6,7 @@ import WindowManager from '../windows/WindowManager';
 import LockScreen from './LockScreen';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useWindowStore } from '@/store/useWindowStore';
+import { WALLPAPERS } from '@/constants/wallpapers';
 import SplashScreen from './SplashScreen';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import TopMenuBar from './TopMenuBar';
@@ -19,6 +20,7 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 
 export default function Desktop() {
   const windows = useWindowStore((state) => state.windows);
+  const wallpaperId = useWindowStore((state) => state.wallpaperId);
   const { wallpaper_url, fetchSettings } = useSettingsStore();
   const [isMouseNearBottom, setIsMouseNearBottom] = useState(false);
   const initializeAuth = useAuthStore(state => state.initialize);
@@ -74,19 +76,37 @@ export default function Desktop() {
       
       <OfflineDetector />
 
-      {wallpaper_url ? (
-        <div className="absolute inset-0 z-0">
-          <img src={wallpaper_url} alt="Wallpaper" className="w-full h-full object-cover" />
-        </div>
-      ) : (
-        <div className="absolute inset-0 z-0 overflow-hidden bg-black flex justify-center items-center">
-          <div className="wave">
-            <div className="wave-item"></div>
-            <div className="wave-item"></div>
-            <div className="wave-item"></div>
-          </div>
-        </div>
-      )}
+      {(() => {
+        const localWallpaper = WALLPAPERS.find(w => w.id === wallpaperId);
+        const isGlobal = !localWallpaper || localWallpaper.id === 'global';
+        const finalUrl = isGlobal ? wallpaper_url : localWallpaper.url;
+        
+        if (localWallpaper?.id === 'live-waves' || (isGlobal && !wallpaper_url)) {
+          return (
+            <div className="absolute inset-0 z-0 overflow-hidden bg-black flex justify-center items-center">
+              <div className="wave">
+                <div className="wave-item"></div>
+                <div className="wave-item"></div>
+                <div className="wave-item"></div>
+              </div>
+            </div>
+          );
+        }
+
+        if (localWallpaper?.type === 'color') {
+          return <div className="absolute inset-0 z-0" style={{ backgroundColor: finalUrl || '#000' }} />;
+        }
+        
+        if (finalUrl) {
+          return (
+            <div className="absolute inset-0 z-0">
+              <img src={finalUrl} alt="Wallpaper" className="w-full h-full object-cover" />
+            </div>
+          );
+        }
+
+        return null;
+      })()}
 
       <NotificationCenter />
       <ContextMenu />

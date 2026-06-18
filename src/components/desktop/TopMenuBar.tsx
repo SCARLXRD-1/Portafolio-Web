@@ -58,28 +58,32 @@ export default function TopMenuBar() {
       
       <div className="flex-1" />
       
-      <div className="flex items-center gap-4 relative">
+      <div className="flex items-center gap-2 sm:gap-4 relative">
 
 
-        <ThemeToggle />
-        <LanguageSwitcher />
+        <div className="hidden sm:block">
+          <ThemeToggle />
+        </div>
+        <div className="hidden sm:block">
+          <LanguageSwitcher />
+        </div>
         
         {/* Music App Trigger */}
         <button 
           onClick={handleMusicClick}
-          className="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-center"
+          className="hidden sm:flex opacity-70 hover:opacity-100 transition-opacity items-center justify-center"
         >
           <Music size={14} />
         </button>
 
         <Search size={14} className="opacity-70 cursor-pointer hover:opacity-100 transition-opacity" />
-        <Wifi size={14} className="opacity-70 cursor-pointer hover:opacity-100 transition-opacity" />
-        <Volume2 size={14} className="opacity-70 cursor-pointer hover:opacity-100 transition-opacity" />
-        <div className="hidden sm:flex items-center gap-1 opacity-70 cursor-pointer hover:opacity-100 transition-opacity" title={supported ? `Batería: ${batteryPercentage}%` : "Batería no soportada"}>
-          {supported && <span className="mr-1">{batteryPercentage}%</span>}
+        <Wifi size={14} className="hidden sm:block opacity-70 cursor-pointer hover:opacity-100 transition-opacity" />
+        <Volume2 size={14} className="hidden sm:block opacity-70 cursor-pointer hover:opacity-100 transition-opacity" />
+        <div className="flex items-center gap-1 opacity-70 cursor-pointer hover:opacity-100 transition-opacity" title={supported ? `Batería: ${batteryPercentage}%` : "Batería no soportada"}>
+          {supported && <span className="hidden sm:inline mr-1">{batteryPercentage}%</span>}
           {renderBatteryIcon()}
         </div>
-        <span className="ml-2 font-semibold tracking-wider cursor-default">
+        <span className="ml-1 sm:ml-2 font-semibold tracking-wider cursor-default">
           <span className="hidden md:inline">{fullDateString} </span>{timeString}
         </span>
       </div>

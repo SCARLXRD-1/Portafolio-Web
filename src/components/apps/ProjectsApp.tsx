@@ -368,7 +368,7 @@ export default function ProjectsApp() {
         </header>
 
         {/* File Grid/List */}
-        <div className="flex-1 overflow-y-auto p-6 bg-white dark:bg-[#121212]">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-white dark:bg-[#121212]">
           {currentItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-black/40 dark:text-white/40">
               <Folder size={48} className="mb-4 opacity-20" />

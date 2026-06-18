@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Mail, CheckCircle, Loader2 } from 'lucide-react';
 import { insforge } from '@/lib/insforge';
+import emailjs from '@emailjs/browser';
 
 const GithubIcon = ({ size = 18 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -52,6 +53,33 @@ export default function ContactApp() {
 
       if (error) throw error;
       
+      // Enviar notificación a Gmail usando EmailJS
+      const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+      const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+      const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+      if (serviceId && templateId && publicKey) {
+        try {
+          await emailjs.send(
+            serviceId,
+            templateId,
+            {
+              from_name: formData.name,
+              from_email: formData.email,
+              message: formData.message,
+            },
+            publicKey
+          );
+        } catch (emailError: any) {
+          console.error("Error al enviar emailJS completo:", emailError);
+          const errorMsg = emailError?.text || emailError?.message || JSON.stringify(emailError);
+          alert(`Error de EmailJS: ${errorMsg}\n\nRevisa que tus claves coincidan exactamente y no tengan espacios al final.`);
+          // Opcional: no lanzamos el error para no arruinar la experiencia si la DB ya lo guardó
+        }
+      } else {
+        console.warn("Faltan variables de EmailJS. El mensaje solo se guardó en la base de datos.");
+      }
+
       setIsSuccess(true);
       setFormData({ name: '', email: '', message: '' });
       setTimeout(() => setIsSuccess(false), 5000);
@@ -63,7 +91,7 @@ export default function ContactApp() {
   };
 
   return (
-    <div className="h-full w-full bg-[#0d0d0d]/90 text-white overflow-y-auto p-8">
+    <div className="h-full w-full bg-[#0d0d0d]/90 text-white overflow-y-auto p-4 sm:p-8">
       <div className="max-w-3xl mx-auto">
         <header className="mb-10 flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">

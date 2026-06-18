@@ -71,6 +71,13 @@ export default function Spotlight() {
       icon: <MessageSquare className="text-purple-400" />,
       action: () => openWindow('contact'),
     },
+    {
+      id: 'chat',
+      title: 'Chat en Vivo',
+      subtitle: 'Habla conmigo en tiempo real',
+      icon: <MessageSquare className="text-pink-400" />,
+      action: () => openWindow('chat'),
+    },
   ];
 
   const filteredResults = query

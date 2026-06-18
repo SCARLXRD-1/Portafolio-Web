@@ -2,8 +2,10 @@
 
 import React, { useTransition } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { Settings, Moon, Sun, Monitor, Palette, MonitorSmartphone, Cpu, HardDrive, MemoryStick, Languages, Globe, Info, Network } from 'lucide-react';
+import { Settings, Moon, Sun, Monitor, Palette, MonitorSmartphone, Cpu, HardDrive, MemoryStick, Languages, Globe, Info, Network, Image as ImageIcon } from 'lucide-react';
 import { useThemeStore } from '@/store/useThemeStore';
+import { useWindowStore } from '@/store/useWindowStore';
+import { WALLPAPERS } from '@/constants/wallpapers';
 import { useRouter, usePathname } from '@/i18n/routing';
 import { useSystemSounds } from '@/hooks/useSystemSounds';
 
@@ -14,6 +16,8 @@ export default function SettingsApp() {
   const isEs = locale === 'es';
   const router = useRouter();
   const pathname = usePathname();
+  const wallpaperId = useWindowStore(state => state.wallpaperId);
+  const setWallpaperId = useWindowStore(state => state.setWallpaperId);
   const [isPending, startTransition] = useTransition();
   const changeLanguage = (nextLocale: string) => {
     if (locale === nextLocale) return;
@@ -23,7 +27,7 @@ export default function SettingsApp() {
   };
 
   return (
-    <div className="h-full w-full bg-[#f8f9fa] dark:bg-[#0d0d0d] text-black dark:text-white overflow-y-auto p-8">
+    <div className="h-full w-full bg-[#f8f9fa] dark:bg-[#0d0d0d] text-black dark:text-white overflow-y-auto p-4 sm:p-8">
       <div className="max-w-3xl mx-auto space-y-10 pb-12">
         <header className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-gray-500/10 flex items-center justify-center border border-gray-500/20 shadow-inner">
@@ -181,15 +185,32 @@ export default function SettingsApp() {
           {/* Fondo de Pantalla Section */}
           <section>
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Monitor size={18} className="text-teal-500" />
+              <ImageIcon size={18} className="text-teal-500" />
               {isEs ? 'Fondo de Pantalla' : 'Wallpaper'}
             </h2>
-            <div className="bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-sm">
-              <MonitorSmartphone size={40} className="text-black/20 dark:text-white/20 mb-3" />
-              <p className="text-black/50 dark:text-white/50 text-sm">
-                {isEs ? 'Actualmente estás utilizando el fondo interactivo por defecto.' : 'You are currently using the default interactive wallpaper.'}<br/>
-                {isEs ? 'La galería de fondos personalizados estará disponible en una próxima actualización.' : 'The custom wallpaper gallery will be available in a future update.'}
-              </p>
+            <div className="bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl p-4 shadow-sm">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {WALLPAPERS.map((wp) => (
+                  <button
+                    key={wp.id}
+                    onClick={() => setWallpaperId(wp.id)}
+                    className={`relative aspect-video rounded-xl overflow-hidden border-2 transition-all hover:scale-105 active:scale-95 ${
+                      wallpaperId === wp.id 
+                        ? 'border-blue-500 shadow-md scale-105' 
+                        : 'border-transparent hover:border-black/20 dark:hover:border-white/20'
+                    }`}
+                  >
+                    {wp.type === 'color' ? (
+                      <div className="w-full h-full" style={{ backgroundColor: wp.url }} />
+                    ) : (
+                      <img src={wp.url} alt={wp.name} className="w-full h-full object-cover" />
+                    )}
+                    <div className="absolute inset-x-0 bottom-0 bg-black/60 backdrop-blur-md p-2">
+                      <p className="text-[10px] font-medium text-white text-center truncate">{wp.name}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           </section>
 

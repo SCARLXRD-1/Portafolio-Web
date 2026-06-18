@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type AppId = 'terminal' | 'projects' | 'about' | 'skills' | 'contact' | 'experiments' | 'browser' | 'certificates' | 'experience' | 'settings' | 'music' | 'files';
+export type AppId = 'terminal' | 'projects' | 'about' | 'skills' | 'contact' | 'chat' | 'experiments' | 'browser' | 'certificates' | 'experience' | 'settings' | 'music' | 'files' | 'notes';
 
 export interface WindowState {
   id: AppId;
@@ -24,6 +24,8 @@ interface WindowStore {
   focusWindow: (id: AppId) => void;
   resizeWindow: (id: AppId, width: number, height: number) => void;
   moveWindow: (id: AppId, x: number, y: number) => void;
+  wallpaperId: string;
+  setWallpaperId: (id: string) => void;
 }
 
 const defaultWindows: Record<AppId, WindowState> = {
@@ -32,6 +34,7 @@ const defaultWindows: Record<AppId, WindowState> = {
   about: { id: 'about', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 800, height: 500 },
   skills: { id: 'skills', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 900, height: 600 },
   contact: { id: 'contact', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 800, height: 600 },
+  chat: { id: 'chat', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 450, height: 600 },
   experiments: { id: 'experiments', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 1000, height: 650 },
   browser: { id: 'browser', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 1000, height: 650 },
   certificates: { id: 'certificates', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 900, height: 600 },
@@ -39,6 +42,7 @@ const defaultWindows: Record<AppId, WindowState> = {
   settings: { id: 'settings', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 700, height: 500 },
   music: { id: 'music', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 340, height: 420 },
   files: { id: 'files', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 750, height: 500 },
+  notes: { id: 'notes', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 800, height: 600 },
 };
 
 let highestZIndex = 1;
@@ -46,6 +50,12 @@ let highestZIndex = 1;
 export const useWindowStore = create<WindowStore>((set) => ({
   windows: defaultWindows,
   activeWindow: null,
+  wallpaperId: globalThis.window === undefined ? 'global' : localStorage.getItem('os_wallpaper') || 'global',
+
+  setWallpaperId: (id) => {
+    if (globalThis.window !== undefined) localStorage.setItem('os_wallpaper', id);
+    set({ wallpaperId: id });
+  },
 
   openWindow: (id) => set((state) => {
     highestZIndex += 1;

@@ -25,7 +25,7 @@ export default function Window({ id, children }: WindowProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [size, setSize] = useState({ width: winState?.width || 800, height: winState?.height || 500 });
   const [isResizing, setIsResizing] = useState(false);
-  const [snapState, setSnapState] = useState<'none' | 'left' | 'right'>('none');
+  const [snapState, setSnapState] = useState<'none' | 'left' | 'right' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>('none');
   const [hasPlayedOpen, setHasPlayedOpen] = useState(false);
 
   const isMaximized = winState?.isMaximized || isMobile;
@@ -108,14 +108,37 @@ export default function Window({ id, children }: WindowProps) {
       }}
       onDragEnd={(e, info) => {
         setIsDragging(false);
-        if (info.point.y < 20) {
-          if (!isMaximized) maximizeWindow(id);
-        } else if (info.point.x < 20) {
-          if (isMaximized) maximizeWindow(id); // toggle off maximize
+        const { x, y } = info.point;
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const threshold = 30; // pixels from edge
+
+        // Esquinas (Quarters)
+        if (x < threshold && y < threshold + 32) {
+          if (isMaximized) maximizeWindow(id);
+          setSnapState('top-left');
+        } else if (x > width - threshold && y < threshold + 32) {
+          if (isMaximized) maximizeWindow(id);
+          setSnapState('top-right');
+        } else if (x < threshold && y > height - threshold - 110) {
+          if (isMaximized) maximizeWindow(id);
+          setSnapState('bottom-left');
+        } else if (x > width - threshold && y > height - threshold - 110) {
+          if (isMaximized) maximizeWindow(id);
+          setSnapState('bottom-right');
+        } 
+        // Bordes Laterales (Halves)
+        else if (x < threshold) {
+          if (isMaximized) maximizeWindow(id);
           setSnapState('left');
-        } else if (info.point.x > window.innerWidth - 20) {
+        } else if (x > width - threshold) {
           if (isMaximized) maximizeWindow(id);
           setSnapState('right');
+        }
+        // Borde Superior (Maximize)
+        else if (y < threshold + 32) {
+          if (!isMaximized) maximizeWindow(id);
+          setSnapState('none');
         }
       }}
       onPointerDownCapture={() => focusWindow(id)}
@@ -133,12 +156,12 @@ export default function Window({ id, children }: WindowProps) {
         opacity: 1,
         scaleX: 1,
         filter: 'blur(0px)',
-        width: isMaximized ? '100%' : (snapState !== 'none' ? '50%' : size.width),
-        height: isMaximized ? 'calc(100% - 32px)' : (snapState !== 'none' ? 'calc(100% - 32px)' : size.height),
+        width: isMaximized ? '100%' : (snapState !== 'none' ? (snapState.includes('left') || snapState.includes('right') ? '50%' : size.width) : size.width),
+        height: isMaximized ? 'calc(100% - 32px)' : (snapState !== 'none' ? (snapState.includes('top') || snapState.includes('bottom') ? 'calc(50% - 16px)' : 'calc(100% - 32px)') : size.height),
         x: isMaximized ? 0 : undefined,
         y: isMaximized ? 0 : undefined,
-        top: isMaximized || snapState !== 'none' ? 32 : '10%',
-        left: isMaximized ? 0 : (snapState === 'left' ? 0 : (snapState === 'right' ? '50%' : '20%')),
+        top: isMaximized || snapState === 'left' || snapState === 'right' || snapState.includes('top') ? 32 : (snapState.includes('bottom') ? '50%' : '10%'),
+        left: isMaximized || snapState === 'left' || snapState.includes('left') ? 0 : (snapState === 'right' || snapState.includes('right') ? '50%' : '20%'),
       }}
       whileDrag={{ scale: 1.01, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
       transition={
@@ -169,21 +192,21 @@ export default function Window({ id, children }: WindowProps) {
             >
               <button 
                 onClick={handleClose} 
-                className="w-4 h-4 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center group transition-colors duration-150 shadow-sm"
+                className="w-5 h-5 md:w-4 md:h-4 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center group transition-colors duration-150 shadow-sm"
               >
-                <X size={10} className="opacity-0 group-hover:opacity-100 text-black font-bold transition-opacity" />
+                <X size={10} className="opacity-100 md:opacity-0 group-hover:opacity-100 text-black font-bold transition-opacity" />
               </button>
               <button 
                 onClick={handleMinimize} 
-                className="w-4 h-4 rounded-full bg-yellow-500 hover:bg-yellow-600 flex items-center justify-center group transition-colors duration-150 shadow-sm"
+                className="w-5 h-5 md:w-4 md:h-4 rounded-full bg-yellow-500 hover:bg-yellow-600 flex items-center justify-center group transition-colors duration-150 shadow-sm"
               >
-                <Minus size={10} className="opacity-0 group-hover:opacity-100 text-black font-bold transition-opacity" />
+                <Minus size={10} className="opacity-100 md:opacity-0 group-hover:opacity-100 text-black font-bold transition-opacity" />
               </button>
               <button 
                 onClick={() => maximizeWindow(id)} 
-                className="w-4 h-4 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center group transition-colors duration-150 shadow-sm"
+                className="w-5 h-5 md:w-4 md:h-4 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center group transition-colors duration-150 shadow-sm"
               >
-                <Square size={8} className="opacity-0 group-hover:opacity-100 text-black font-bold transition-opacity" />
+                <Square size={8} className="opacity-100 md:opacity-0 group-hover:opacity-100 text-black font-bold transition-opacity" />
               </button>
             </div>
             

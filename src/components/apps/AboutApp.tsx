@@ -49,7 +49,7 @@ export default function AboutApp() {
   const interests = (isEs ? profile.interests_es : profile.interests_en) || (isEs ? 'Tecnología, Diseño UI, Videojuegos' : 'Technology, UI Design, Video Games');
 
   return (
-    <div className="h-full w-full bg-[#0d0d0d]/80 text-white overflow-y-auto select-text p-6 md:p-8 flex flex-col md:flex-row gap-8 items-center md:items-start transition-colors duration-500">
+    <div className="h-full w-full bg-[#0d0d0d]/80 text-white overflow-y-auto select-text p-4 md:p-8 flex flex-col md:flex-row gap-8 items-center md:items-start transition-colors duration-500">
       {/* Left side: Profile Picture & Branding */}
       <div className="flex flex-col items-center text-center md:w-1/2 shrink-0">
         <div className="relative group p-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl shadow-xl flex items-center justify-center overflow-hidden">

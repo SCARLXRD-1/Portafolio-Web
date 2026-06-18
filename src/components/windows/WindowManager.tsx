@@ -10,6 +10,7 @@ import AboutApp from '../apps/AboutApp';
 import ProjectsApp from '../apps/ProjectsApp';
 import SkillsApp from '../apps/SkillsApp';
 import ContactApp from '../apps/ContactApp';
+import ChatApp from '../apps/ChatApp';
 import ExperimentsApp from '../apps/ExperimentsApp';
 import BrowserApp from '../apps/BrowserApp';
 import CertificatesApp from '../apps/CertificatesApp';
@@ -17,6 +18,7 @@ import ExperienceApp from '../apps/ExperienceApp';
 import SettingsApp from '../apps/SettingsApp';
 import MusicApp from '../apps/MusicApp';
 import FilesApp from '../apps/FilesApp';
+import NotesApp from '../apps/NotesApp';
 
 const APP_COMPONENTS: Record<AppId, React.ComponentType<any>> = {
   terminal: TerminalApp,
@@ -24,6 +26,7 @@ const APP_COMPONENTS: Record<AppId, React.ComponentType<any>> = {
   projects: ProjectsApp,
   skills: SkillsApp,
   contact: ContactApp,
+  chat: ChatApp,
   experiments: ExperimentsApp,
   browser: BrowserApp,
   certificates: CertificatesApp,
@@ -31,6 +34,7 @@ const APP_COMPONENTS: Record<AppId, React.ComponentType<any>> = {
   settings: SettingsApp,
   music: MusicApp,
   files: FilesApp,
+  notes: NotesApp,
 };
 
 export default function WindowManager() {
@@ -41,7 +45,7 @@ export default function WindowManager() {
       {Object.values(windows).map((win) => {
         if (!win.isOpen) return null;
 
-        const AppComponent = APP_COMPONENTS[win.id as AppId];
+        const AppComponent = APP_COMPONENTS[win.id];
         return (
           <Window key={win.id} id={win.id}>
             <AppComponent />

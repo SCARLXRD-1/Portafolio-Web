@@ -3,6 +3,7 @@
     "projects": "Proyectos",
     "about": "Sobre mí",
     "skills": "Habilidades",
+    "chat": "Mensajes",
     "contact": "Contacto",
     "terminal": "Terminal",
     "github": "GitHub",
@@ -12,7 +13,8 @@
     "certificates": "Certificados",
     "experience": "Experiencia",
     "settings": "Ajustes",
-    "files": "Archivos"
+    "files": "Archivos",
+    "notes": "Notas"
   },
   "Terminal": {
     "welcome": "Bienvenido a AKASHI DEV. Escribe 'help' para ver los comandos disponibles.",
