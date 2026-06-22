@@ -22,7 +22,7 @@ export default function SettingsApp() {
   const changeLanguage = (nextLocale: string) => {
     if (locale === nextLocale) return;
     startTransition(() => {
-      router.replace(pathname, { locale: nextLocale });
+      router.replace(pathname, { locale: nextLocale, scroll: false } as any);
     });
   };
 

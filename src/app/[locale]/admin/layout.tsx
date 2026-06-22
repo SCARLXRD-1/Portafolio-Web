@@ -16,6 +16,7 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
   // Extract locale from pathname (e.g. /es/admin -> es)
   const locale = pathname.split('/')[1] || 'es';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { user, isAdmin, signOut, isLoading, initialize, accessDenied, deniedEmail, clearDenied } = useAuthStore();
   const { playClick } = useSystemSounds();
 
@@ -43,6 +44,7 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
 
   const handleSignOut = async () => {
     playClick();
+    setShowLogoutModal(false);
     await signOut();
   };
 
@@ -160,7 +162,7 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
         </nav>
 
         <div className="p-4 border-t border-black/10 dark:border-white/10">
-          <button onClick={handleSignOut} className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
+          <button onClick={() => setShowLogoutModal(true)} className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
             <LogOut size={20} />
             <span className="font-medium tracking-wide">Cerrar Sesión</span>
           </button>
@@ -202,6 +204,33 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
           </div>
         </div>
       </main>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#1e1e1e] border border-black/10 dark:border-white/10 rounded-2xl p-6 w-[90%] max-w-sm shadow-xl animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-semibold mb-2">¿Cerrar Sesión?</h3>
+            <p className="text-black/60 dark:text-white/60 mb-6 text-sm">
+              ¿Estás seguro de que deseas salir del panel de administración?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="px-4 py-2 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors font-medium text-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSignOut}
+                className="px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white transition-colors font-medium text-sm flex items-center gap-2"
+              >
+                <LogOut size={16} />
+                Salir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

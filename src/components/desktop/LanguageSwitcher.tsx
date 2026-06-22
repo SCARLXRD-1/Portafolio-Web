@@ -31,7 +31,7 @@ export default function LanguageSwitcher() {
       return;
     }
     startTransition(() => {
-      router.replace(pathname, { locale: nextLocale });
+      router.replace(pathname, { locale: nextLocale, scroll: false } as any);
       setIsOpen(false);
     });
   };
