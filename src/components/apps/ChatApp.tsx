@@ -158,11 +158,7 @@ export default function ChatApp() {
           <Bot className="text-blue-500" size={20} />
         </div>
         <div>
-          <h2 className="font-semibold leading-tight">Jhonatan (Admin)</h2>
-          <div className="flex items-center gap-1.5 text-xs text-black/50 dark:text-white/50">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Online
-          </div>
+          <h2 className="font-semibold leading-tight">AKASHI DEV</h2>
         </div>
       </header>
 
