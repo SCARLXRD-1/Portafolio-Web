@@ -44,15 +44,21 @@ export default function AdminChatPage() {
 
     // Suscribirse a nuevos chats o actualizaciones
     const setupRealtime = async () => {
-      await insforge.realtime.connect();
-      await insforge.realtime.subscribe('admin_chats');
-      insforge.realtime.on('chat_updated', fetchChats);
+      try {
+        await insforge.realtime.connect();
+        await insforge.realtime.subscribe('admin_chats');
+        insforge.realtime.on('chat_updated', fetchChats);
+      } catch (e) {
+        console.warn('Realtime (admin_chats) falló:', e);
+      }
     };
     setupRealtime();
 
     return () => {
-      insforge.realtime.off('chat_updated', fetchChats);
-      insforge.realtime.unsubscribe('admin_chats');
+      try {
+        insforge.realtime.off('chat_updated', fetchChats);
+        insforge.realtime.unsubscribe('admin_chats');
+      } catch (e) {}
     };
   }, []);
 
@@ -84,16 +90,21 @@ export default function AdminChatPage() {
     fetchMessages();
 
     const setupChatRealtime = async () => {
-      await insforge.realtime.connect();
-      await insforge.realtime.subscribe(`chat:${selectedChat.id}`);
+      try {
+        await insforge.realtime.connect();
+        await insforge.realtime.subscribe(`chat:${selectedChat.id}`);
+        insforge.realtime.on('new_message', handleNewMessage);
+      } catch (e) {
+        console.warn(`Realtime (chat:${selectedChat.id}) falló:`, e);
+      }
     };
     setupChatRealtime();
 
-    insforge.realtime.on('new_message', handleNewMessage);
-
     return () => {
-      insforge.realtime.off('new_message', handleNewMessage);
-      insforge.realtime.unsubscribe(`chat:${selectedChat.id}`);
+      try {
+        insforge.realtime.off('new_message', handleNewMessage);
+        insforge.realtime.unsubscribe(`chat:${selectedChat.id}`);
+      } catch (e) {}
     };
   }, [selectedChat]);
 

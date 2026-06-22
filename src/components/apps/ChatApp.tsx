@@ -66,26 +66,33 @@ export default function ChatApp() {
 
         if (history) setMessages(history);
 
-        // Conectar al servidor en tiempo real y suscribirse al canal
-        await insforge.realtime.connect();
-        await insforge.realtime.subscribe(`chat:${currentChatId}`);
-        
-        const handleNewMessage = (payload: any) => {
-          // Solo agregar si el remitente NO es visitor
-          if (payload.sender !== 'visitor') {
-            setMessages((prev) => prev.some(m => m.id === payload.id) ? prev : [...prev, payload as ChatMessage]);
-            scrollToBottom();
-          }
-        };
+        try {
+          // Conectar al servidor en tiempo real y suscribirse al canal
+          await insforge.realtime.connect();
+          await insforge.realtime.subscribe(`chat:${currentChatId}`);
+          
+          const handleNewMessage = (payload: any) => {
+            // Solo agregar si el remitente NO es visitor
+            if (payload.sender !== 'visitor') {
+              setMessages((prev) => prev.some(m => m.id === payload.id) ? prev : [...prev, payload as ChatMessage]);
+              scrollToBottom();
+            }
+          };
 
-        insforge.realtime.on('new_message', handleNewMessage);
+          insforge.realtime.on('new_message', handleNewMessage);
 
-        setIsInitializing(false);
+          setIsInitializing(false);
 
-        return () => {
-          insforge.realtime.off('new_message', handleNewMessage);
-          insforge.realtime.unsubscribe(`chat:${currentChatId}`);
-        };
+          return () => {
+            try {
+              insforge.realtime.off('new_message', handleNewMessage);
+              insforge.realtime.unsubscribe(`chat:${currentChatId}`);
+            } catch (e) {}
+          };
+        } catch (rtError) {
+          console.warn('Error conectando a Realtime:', rtError);
+          setIsInitializing(false);
+        }
       } else {
         setIsInitializing(false);
       }
