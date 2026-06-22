@@ -38,7 +38,7 @@ CREATE POLICY "Public read access" ON public.profile_settings
 DROP POLICY IF EXISTS "Admin update access" ON public.profile_settings;
 CREATE POLICY "Admin update access" ON public.profile_settings
     FOR UPDATE USING (
-        auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
+        (select auth.uid()) = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
     );
 
 GRANT SELECT ON public.profile_settings TO anon, authenticated;
@@ -72,7 +72,7 @@ CREATE POLICY "Public read published projects" ON public.projects
 DROP POLICY IF EXISTS "Admin full access projects" ON public.projects;
 CREATE POLICY "Admin full access projects" ON public.projects
     FOR ALL USING (
-        auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
+        (select auth.uid()) = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
     );
 
 GRANT SELECT ON public.projects TO anon, authenticated;
@@ -104,7 +104,7 @@ CREATE POLICY "Public read experience" ON public.experience
 DROP POLICY IF EXISTS "Admin full access experience" ON public.experience;
 CREATE POLICY "Admin full access experience" ON public.experience
     FOR ALL USING (
-        auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
+        (select auth.uid()) = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
     );
 
 GRANT SELECT ON public.experience TO anon, authenticated;
@@ -132,7 +132,7 @@ CREATE POLICY "Public read skills" ON public.skills
 DROP POLICY IF EXISTS "Admin full access skills" ON public.skills;
 CREATE POLICY "Admin full access skills" ON public.skills
     FOR ALL USING (
-        auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
+        (select auth.uid()) = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
     );
 
 GRANT SELECT ON public.skills TO anon, authenticated;
@@ -163,7 +163,7 @@ CREATE POLICY "Public read published certificates" ON public.certificates
 DROP POLICY IF EXISTS "Admin full access certificates" ON public.certificates;
 CREATE POLICY "Admin full access certificates" ON public.certificates
     FOR ALL USING (
-        auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
+        (select auth.uid()) = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
     );
 
 GRANT SELECT ON public.certificates TO anon, authenticated;
@@ -193,7 +193,7 @@ CREATE POLICY "Public read experiments" ON public.experiments
 DROP POLICY IF EXISTS "Admin full access experiments" ON public.experiments;
 CREATE POLICY "Admin full access experiments" ON public.experiments
     FOR ALL USING (
-        auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
+        (select auth.uid()) = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
     );
 
 GRANT SELECT ON public.experiments TO anon, authenticated;
@@ -223,7 +223,7 @@ CREATE POLICY "Public insert messages" ON public.contact_messages
 DROP POLICY IF EXISTS "Admin full access messages" ON public.contact_messages;
 CREATE POLICY "Admin full access messages" ON public.contact_messages
     FOR ALL USING (
-        auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
+        (select auth.uid()) = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
     );
 
 GRANT SELECT, UPDATE, DELETE ON public.contact_messages TO authenticated;
@@ -241,7 +241,7 @@ DROP POLICY IF EXISTS "Admin insert/update/delete for portfolio assets" ON stora
 CREATE POLICY "Admin insert/update/delete for portfolio assets" ON storage.objects
     FOR ALL USING (
         bucket = 'portfolio-assets' AND
-        auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
+        (select auth.uid()) = 'dc64568f-659e-4a22-baa0-56a0225bff0c'
     );
 
 
@@ -253,6 +253,6 @@ NOTIFY pgrst, 'reload schema';
 -- Storage Bucket Policies
 INSERT INTO storage.buckets (id, name, public) VALUES ('portfolio-assets', 'portfolio-assets', true) ON CONFLICT (id) DO NOTHING;
 CREATE POLICY "Public Access" ON storage.objects FOR SELECT TO public USING (bucket_id = 'portfolio-assets');
-CREATE POLICY "Admin Upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'portfolio-assets' AND auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c');
-CREATE POLICY "Admin Update" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'portfolio-assets' AND auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c');
-CREATE POLICY "Admin Delete" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'portfolio-assets' AND auth.uid() = 'dc64568f-659e-4a22-baa0-56a0225bff0c');
+CREATE POLICY "Admin Upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'portfolio-assets' AND (select auth.uid()) = 'dc64568f-659e-4a22-baa0-56a0225bff0c');
+CREATE POLICY "Admin Update" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'portfolio-assets' AND (select auth.uid()) = 'dc64568f-659e-4a22-baa0-56a0225bff0c');
+CREATE POLICY "Admin Delete" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'portfolio-assets' AND (select auth.uid()) = 'dc64568f-659e-4a22-baa0-56a0225bff0c');

@@ -20,7 +20,7 @@ DROP POLICY IF EXISTS "Public read site settings" ON public.site_settings;
 CREATE POLICY "Public read site settings" ON public.site_settings FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "Admin full access site settings" ON public.site_settings;
-CREATE POLICY "Admin full access site settings" ON public.site_settings FOR ALL USING (true);
+CREATE POLICY "Admin full access site settings" ON public.site_settings FOR ALL USING ((select auth.uid()) = 'dc64568f-659e-4a22-baa0-56a0225bff0c');
 
 GRANT ALL PRIVILEGES ON TABLE public.site_settings TO authenticated;
 GRANT SELECT ON TABLE public.site_settings TO anon;
