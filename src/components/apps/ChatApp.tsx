@@ -66,6 +66,27 @@ export default function ChatApp() {
 
         if (history) setMessages(history);
 
+        // Polling de respaldo (F5 interno silencioso) cada 3 segundos
+        const pollInterval = setInterval(async () => {
+          try {
+            const { data } = await insforge.database
+              .from('chat_messages')
+              .select('*')
+              .eq('chat_id', currentChatId)
+              .order('created_at', { ascending: true });
+            
+            if (data) {
+              setMessages(prev => {
+                if (prev.length !== data.length) {
+                  setTimeout(scrollToBottom, 100);
+                  return data as ChatMessage[];
+                }
+                return prev;
+              });
+            }
+          } catch (e) {}
+        }, 3000);
+
         try {
           // Conectar al servidor en tiempo real y suscribirse al canal
           await insforge.realtime.connect();
@@ -84,6 +105,7 @@ export default function ChatApp() {
           setIsInitializing(false);
 
           return () => {
+            clearInterval(pollInterval);
             try {
               insforge.realtime.off('new_message', handleNewMessage);
               insforge.realtime.unsubscribe(`chat:${currentChatId}`);
@@ -92,6 +114,8 @@ export default function ChatApp() {
         } catch (rtError) {
           console.warn('Error conectando a Realtime:', rtError);
           setIsInitializing(false);
+          // Si Realtime falla, el polling seguirá funcionando y retornamos su limpieza
+          return () => clearInterval(pollInterval);
         }
       } else {
         setIsInitializing(false);

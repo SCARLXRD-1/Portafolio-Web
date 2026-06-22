@@ -54,7 +54,13 @@ export default function AdminChatPage() {
     };
     setupRealtime();
 
+    // Polling de respaldo general cada 5 segundos
+    const generalPoll = setInterval(() => {
+      fetchChats();
+    }, 5000);
+
     return () => {
+      clearInterval(generalPoll);
       try {
         insforge.realtime.off('chat_updated', fetchChats);
         insforge.realtime.unsubscribe('admin_chats');
@@ -100,7 +106,13 @@ export default function AdminChatPage() {
     };
     setupChatRealtime();
 
+    // Polling de respaldo cada 3 segundos
+    const pollInterval = setInterval(() => {
+      fetchMessages();
+    }, 3000);
+
     return () => {
+      clearInterval(pollInterval);
       try {
         insforge.realtime.off('new_message', handleNewMessage);
         insforge.realtime.unsubscribe(`chat:${selectedChat.id}`);
