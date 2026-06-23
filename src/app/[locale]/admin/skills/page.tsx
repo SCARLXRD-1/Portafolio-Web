@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Code2, Trash2, Loader2, Save } from 'lucide-react';
 import { insforge } from '@/lib/insforge';
 import { toast } from 'react-toastify';
+import { Icon } from '@iconify/react';
 
 export default function AdminSkills() {
   const [skills, setSkills] = useState<any[]>([]);
@@ -87,10 +88,13 @@ export default function AdminSkills() {
 
   const renderIcon = (skill: any) => {
     if (skill.icon?.startsWith('<svg')) {
-      return <div dangerouslySetInnerHTML={{ __html: skill.icon }} className="w-5 h-5" />;
+      return <div dangerouslySetInnerHTML={{ __html: skill.icon }} className="w-5 h-5 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full" />;
     }
     if (skill.icon?.includes('://')) {
       return <img src={skill.icon} alt={skill.name} className="w-5 h-5 object-contain" />;
+    }
+    if (skill.icon?.includes(':')) {
+      return <Icon icon={skill.icon} className="w-5 h-5" />;
     }
     if (skill.icon) {
       return <img src={`https://cdn.simpleicons.org/${skill.icon}/white`} alt={skill.name} className="w-5 h-5 object-contain" />;
@@ -154,9 +158,9 @@ export default function AdminSkills() {
             </div>
             <div>
               <label htmlFor="skill-icon" className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">
-                Icono Nativo, URL o Código SVG
+                Icono Nativo (Iconify), URL o Código SVG
                 <span className="block text-xs font-normal text-black/50 dark:text-white/50 mt-0.5">
-                  Escribe un nombre de simpleicons.org (ej: react, nodedotjs, docker), o pega una URL/SVG.
+                  Busca en <a href="https://icones.js.org/" target="_blank" rel="noreferrer" className="text-emerald-500 hover:underline">icones.js.org</a> (ej: skill-icons:react-dark, devicon:html5). También soporta slugs de simple-icons o URLs.
                 </span>
               </label>
               <input 
@@ -165,7 +169,7 @@ export default function AdminSkills() {
                 value={formData.icon}
                 onChange={e => setFormData({...formData, icon: e.target.value.toLowerCase()})}
                 className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" 
-                placeholder="react, nodedotjs, figma, o https://..." 
+                placeholder="devicon:html5, skill-icons:react-dark, etc." 
               />
             </div>
             <div>

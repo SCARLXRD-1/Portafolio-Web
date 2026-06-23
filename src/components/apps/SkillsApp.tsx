@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Code2, Server, Layout, Database, Wrench, Paintbrush, Loader2, Smartphone, Cloud, Terminal, Languages, Blocks, BrainCircuit, TestTube, ShieldCheck, ShoppingCart, GitBranch, Monitor, Network, RotateCcw } from 'lucide-react';
 import { insforge } from '@/lib/insforge';
+import { Icon } from '@iconify/react';
 
 export default function SkillsApp() {
   const t = useTranslations('Dock');
@@ -59,10 +60,13 @@ export default function SkillsApp() {
 
   const renderIcon = (skill: any) => {
     if (skill.icon?.startsWith('<svg')) {
-      return <div dangerouslySetInnerHTML={{ __html: skill.icon }} className="w-8 h-8" />;
+      return <div dangerouslySetInnerHTML={{ __html: skill.icon }} className="w-8 h-8 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full" />;
     }
     if (skill.icon?.includes('://')) {
       return <img src={skill.icon} alt={skill.name} className="w-8 h-8 object-contain" />;
+    }
+    if (skill.icon?.includes(':')) {
+      return <Icon icon={skill.icon} className="w-8 h-8" />;
     }
     if (skill.icon) {
       return <img src={`https://cdn.simpleicons.org/${skill.icon}/white`} alt={skill.name} className="w-8 h-8 object-contain drop-shadow-md" />;
