@@ -21,7 +21,7 @@ export function translateDate(dateStr: string, isEs: boolean): string {
   let translated = dateStr;
   Object.keys(dictionary).forEach(esWord => {
     // case-insensitive replacement
-    const regex = new RegExp(`\\b${esWord}\\b`, 'gi');
+    const regex = new RegExp(String.raw`\b${esWord}\b`, 'gi');
     translated = translated.replace(regex, dictionary[esWord]);
   });
 

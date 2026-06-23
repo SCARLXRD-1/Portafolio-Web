@@ -47,11 +47,13 @@ export default function ExperienceApp() {
           </div>
         </header>
 
-        {isLoading ? (
+        {isLoading && (
           <div className="flex justify-center items-center py-20">
             <Loader2 className="animate-spin text-black/50 dark:text-white/50" size={48} />
           </div>
-        ) : experiences.length === 0 ? (
+        )}
+        
+        {!isLoading && experiences.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-black/10 dark:border-white/10 rounded-3xl bg-black/5 dark:bg-white/5">
             <Briefcase size={48} className="text-black/20 dark:text-white/20 mb-4" />
             <h3 className="text-xl font-medium mb-1">{isEs ? 'No hay experiencia registrada' : 'No experience registered'}</h3>
@@ -61,7 +63,9 @@ export default function ExperienceApp() {
                 : 'No work history information has been added yet. Use the admin panel to get started.'}
             </p>
           </div>
-        ) : (
+        )}
+        
+        {!isLoading && experiences.length > 0 && (
           <div className="relative border-l-2 border-black/10 dark:border-white/10 ml-4 md:ml-6 pl-8 space-y-12">
             {experiences.map((exp, idx) => (
               <div key={exp.id} className="relative animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${idx * 100}ms` }}>

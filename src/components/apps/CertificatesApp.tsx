@@ -14,9 +14,6 @@ export default function CertificatesApp() {
   const t = useTranslations('Dock');
   const locale = useLocale();
   const isEs = locale === 'es';
-  
-  const { navigate } = useBrowserStore();
-  const { openWindow } = useWindowStore();
 
   useEffect(() => {
     const fetchCerts = async () => {
@@ -87,11 +84,13 @@ export default function CertificatesApp() {
           </div>
         </motion.div>
 
-        {isLoading ? (
+        {isLoading && (
           <div className="flex justify-center py-20">
             <Loader2 className="animate-spin text-emerald-500" size={32} />
           </div>
-        ) : certificates.length === 0 ? (
+        )}
+        
+        {!isLoading && certificates.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-black/10 dark:border-white/10 rounded-3xl bg-black/5 dark:bg-white/5">
             <Award size={48} className="text-black/20 dark:text-white/20 mb-4" />
             <h3 className="text-xl font-medium text-black dark:text-white mb-1">{isEs ? 'No hay certificados' : 'No certificates'}</h3>
@@ -99,7 +98,9 @@ export default function CertificatesApp() {
               {isEs ? 'Aún no se han añadido certificados a la plataforma.' : 'No certificates have been added to the platform yet.'}
             </p>
           </div>
-        ) : (
+        )}
+        
+        {!isLoading && certificates.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {certificates.map((cert, i) => (
               <motion.div
@@ -152,8 +153,8 @@ export default function CertificatesApp() {
 
                 {cert.skills && cert.skills.length > 0 && (
                   <div className="mt-4 pt-4 border-t border-black/5 dark:border-white/5 flex flex-wrap gap-2">
-                    {cert.skills.map((skill: string, idx: number) => (
-                      <span key={idx} className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-black/5 dark:bg-white/5 text-black/70 dark:text-white/70 rounded-lg">
+                    {cert.skills.map((skill: string) => (
+                      <span key={skill} className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-black/5 dark:bg-white/5 text-black/70 dark:text-white/70 rounded-lg">
                         {skill}
                       </span>
                     ))}
