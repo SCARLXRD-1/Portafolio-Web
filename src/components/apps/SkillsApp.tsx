@@ -57,6 +57,19 @@ export default function SkillsApp() {
     }
   };
 
+  const renderIcon = (skill: any) => {
+    if (skill.icon?.startsWith('<svg')) {
+      return <div dangerouslySetInnerHTML={{ __html: skill.icon }} className="w-8 h-8" />;
+    }
+    if (skill.icon?.includes('://')) {
+      return <img src={skill.icon} alt={skill.name} className="w-8 h-8 object-contain" />;
+    }
+    if (skill.icon) {
+      return <img src={`https://cdn.simpleicons.org/${skill.icon}/white`} alt={skill.name} className="w-8 h-8 object-contain drop-shadow-md" />;
+    }
+    return <Code2 size={24} />;
+  };
+
   const categories = Array.from(new Set(skills.map(s => s.category)));
 
   return (
@@ -72,21 +85,25 @@ export default function SkillsApp() {
           </div>
         </header>
 
-        {isLoading ? (
+        {isLoading && (
           <div className="flex justify-center items-center py-20">
             <Loader2 className="animate-spin text-white/50" size={48} />
           </div>
-        ) : skills.length === 0 ? (
+        )}
+        
+        {!isLoading && skills.length === 0 && (
           <div className="text-center py-20 text-white/50 border border-white/10 rounded-2xl bg-white/5 backdrop-blur-sm">
             {locale === 'es' ? 'No hay habilidades registradas.' : 'No skills registered.'}
           </div>
-        ) : (
+        )}
+        
+        {!isLoading && skills.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {categories.map((category, idx) => {
+            {categories.map((category) => {
               const categorySkills = skills.filter(s => s.category === category);
               
               return (
-                <div key={idx} className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm relative overflow-hidden group">
+                <div key={category} className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm relative overflow-hidden group">
                   <div className="flex items-center gap-3 mb-6 relative z-10">
                     <div className="p-2 rounded-lg bg-white/5 border border-white/10">
                       {getCategoryIcon(category)}
@@ -98,15 +115,7 @@ export default function SkillsApp() {
                     {categorySkills.map(skill => (
                       <div key={skill.id} className="flex flex-col items-center justify-center p-4 bg-black/20 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-xl transition-all group/skill">
                         <div className="w-10 h-10 flex items-center justify-center mb-2 text-white/70 group-hover/skill:text-white transition-colors">
-                          {skill.icon && skill.icon.startsWith('<svg') ? (
-                            <div dangerouslySetInnerHTML={{ __html: skill.icon }} className="w-8 h-8" />
-                          ) : skill.icon && skill.icon.includes('://') ? (
-                            <img src={skill.icon} alt={skill.name} className="w-8 h-8 object-contain" />
-                          ) : skill.icon ? (
-                            <img src={`https://cdn.simpleicons.org/${skill.icon}/white`} alt={skill.name} className="w-8 h-8 object-contain drop-shadow-md" />
-                          ) : (
-                            <Code2 size={24} />
-                          )}
+                          {renderIcon(skill)}
                         </div>
                         <span className="text-sm text-center font-medium text-white/80 group-hover/skill:text-white">{skill.name}</span>
                         {skill.proficiency > 0 && (

@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const userTags = [
     // Original list
@@ -337,7 +337,7 @@ async function getIcon(slug) {
         const res = await fetch(`https://unpkg.com/simple-icons@16.22.0/icons/${slug}.svg`);
         if (!res.ok) throw new Error(`Not found: ${slug}`);
         const text = await res.text();
-        const pathMatch = text.match(/<path d="([^"]+)"/);
+        const pathMatch = /<path d="([^"]+)"/.exec(text);
         return pathMatch ? pathMatch[1] : null;
     } catch (e) {
         console.error(`Error fetching SVG for ${slug}:`, e.message);
@@ -497,7 +497,7 @@ async function start() {
 
         // Rebuild availableTags block
         let newTagsBlock = 'const availableTags = [\n';
-        const sortedTags = Array.from(existingAvailableTags).sort();
+        const sortedTags = Array.from(existingAvailableTags).sort((a, b) => a.localeCompare(b));
         for (let i = 0; i < sortedTags.length; i += 4) {
             const chunk = sortedTags.slice(i, i + 4).map(t => `"${t}"`).join(', ');
             newTagsBlock += `    ${chunk}${i + 4 < sortedTags.length ? ',' : ''}\n`;

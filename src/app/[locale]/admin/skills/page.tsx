@@ -84,6 +84,20 @@ export default function AdminSkills() {
       toast.error('Error: ' + err.message);
     }
   };
+
+  const renderIcon = (skill: any) => {
+    if (skill.icon?.startsWith('<svg')) {
+      return <div dangerouslySetInnerHTML={{ __html: skill.icon }} className="w-5 h-5" />;
+    }
+    if (skill.icon?.includes('://')) {
+      return <img src={skill.icon} alt={skill.name} className="w-5 h-5 object-contain" />;
+    }
+    if (skill.icon) {
+      return <img src={`https://cdn.simpleicons.org/${skill.icon}/white`} alt={skill.name} className="w-5 h-5 object-contain" />;
+    }
+    return <Code2 size={20} />;
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -98,8 +112,9 @@ export default function AdminSkills() {
           <h2 className="text-xl font-semibold text-black dark:text-white mb-6">Añadir Nueva Habilidad</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">Nombre de la Tecnología</label>
+              <label htmlFor="skill-name" className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">Nombre de la Tecnología</label>
               <input 
+                id="skill-name"
                 type="text" 
                 value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
@@ -108,8 +123,9 @@ export default function AdminSkills() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">Categoría</label>
+              <label htmlFor="skill-category" className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">Categoría</label>
               <select 
+                id="skill-category"
                 value={formData.category}
                 onChange={e => setFormData({...formData, category: e.target.value})}
                 className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -137,13 +153,14 @@ export default function AdminSkills() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">
+              <label htmlFor="skill-icon" className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">
                 Icono Nativo, URL o Código SVG
                 <span className="block text-xs font-normal text-black/50 dark:text-white/50 mt-0.5">
                   Escribe un nombre de simpleicons.org (ej: react, nodedotjs, docker), o pega una URL/SVG.
                 </span>
               </label>
               <input 
+                id="skill-icon"
                 type="text" 
                 value={formData.icon}
                 onChange={e => setFormData({...formData, icon: e.target.value.toLowerCase()})}
@@ -152,13 +169,14 @@ export default function AdminSkills() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">Nivel de Dominio (%)</label>
+              <label htmlFor="skill-proficiency" className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">Nivel de Dominio (%)</label>
               <input 
+                id="skill-proficiency"
                 type="number" 
                 min="1" 
                 max="100"
                 value={formData.proficiency}
-                onChange={e => setFormData({...formData, proficiency: parseInt(e.target.value) || 0})}
+                onChange={e => setFormData({...formData, proficiency: Number.parseInt(e.target.value) || 0})}
                 className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" 
               />
             </div>
@@ -175,27 +193,25 @@ export default function AdminSkills() {
 
         <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl p-6 backdrop-blur-sm">
           <h2 className="text-xl font-semibold text-black dark:text-white mb-6">Lista de Habilidades</h2>
-          {isLoading ? (
+          {isLoading && (
             <div className="flex justify-center items-center py-12">
               <Loader2 className="animate-spin text-emerald-500" size={32} />
             </div>
-          ) : skills.length === 0 ? (
+          )}
+          
+          {!isLoading && skills.length === 0 && (
             <div className="text-center py-12 text-black/50 dark:text-white/50 border-2 border-dashed border-black/10 dark:border-white/10 rounded-xl">
               No hay habilidades registradas aún.
             </div>
-          ) : (
+          )}
+          
+          {!isLoading && skills.length > 0 && (
             <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
               {skills.map(skill => (
                 <div key={skill.id} className="flex items-center justify-between p-4 bg-white dark:bg-black/40 border border-black/5 dark:border-white/5 rounded-xl hover:border-emerald-500/50 transition-colors">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 flex items-center justify-center bg-emerald-500/10 text-emerald-500 rounded-lg shrink-0">
-                      {skill.icon && skill.icon.startsWith('<svg') ? (
-                        <div dangerouslySetInnerHTML={{ __html: skill.icon }} className="w-5 h-5" />
-                      ) : skill.icon ? (
-                        <img src={skill.icon} alt={skill.name} className="w-5 h-5 object-contain" />
-                      ) : (
-                        <Code2 size={20} />
-                      )}
+                      {renderIcon(skill)}
                     </div>
                     <div>
                       <h3 className="font-semibold text-black dark:text-white leading-tight">{skill.name}</h3>

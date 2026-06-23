@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Award, ExternalLink, Calendar, FileText, Loader2, X } from 'lucide-react';
 import { insforge } from '@/lib/insforge';
-import { useBrowserStore } from './BrowserApp';
-import { useWindowStore } from '@/store/useWindowStore';
 import { useTranslations, useLocale } from 'next-intl';
 import { translateDate } from '@/utils/dateTranslator';
 
