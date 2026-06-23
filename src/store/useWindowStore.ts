@@ -123,9 +123,6 @@ export const useWindowStore = create<WindowStore>((set) => ({
     },
   })),
 
-  wallpaperId: '1',
-  setWallpaperId: (id) => set({ wallpaperId: id }),
-
   isBooted: false,
   setBooted: (val) => set({ isBooted: val }),
   
