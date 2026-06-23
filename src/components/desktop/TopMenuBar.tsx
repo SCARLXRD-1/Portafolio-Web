@@ -64,7 +64,7 @@ export default function TopMenuBar() {
         <div className="hidden sm:block">
           <ThemeToggle />
         </div>
-        <div className="hidden sm:block">
+        <div className="flex">
           <LanguageSwitcher />
         </div>
         

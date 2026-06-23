@@ -26,6 +26,10 @@ interface WindowStore {
   moveWindow: (id: AppId, x: number, y: number) => void;
   wallpaperId: string;
   setWallpaperId: (id: string) => void;
+  isBooted: boolean;
+  setBooted: (val: boolean) => void;
+  isLocked: boolean;
+  setLocked: (val: boolean) => void;
 }
 
 const defaultWindows: Record<AppId, WindowState> = {
@@ -115,7 +119,16 @@ export const useWindowStore = create<WindowStore>((set) => ({
   moveWindow: (id, x, y) => set((state) => ({
     windows: {
       ...state.windows,
-      [id]: { ...state.windows[id], x, y }
-    }
+      [id]: { ...state.windows[id], x, y },
+    },
   })),
+
+  wallpaperId: '1',
+  setWallpaperId: (id) => set({ wallpaperId: id }),
+
+  isBooted: false,
+  setBooted: (val) => set({ isBooted: val }),
+  
+  isLocked: true,
+  setLocked: (val) => set({ isLocked: val }),
 }));

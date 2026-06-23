@@ -49,8 +49,10 @@ export default function Desktop() {
   }, []);
 
   const shouldHideDock = isAnyMaximized && !isMouseNearBottom;
-  const [showSplash, setShowSplash] = useState(true);
-  const [isLocked, setIsLocked] = useState(true);
+  const isBooted = useWindowStore((state) => state.isBooted);
+  const setBooted = useWindowStore((state) => state.setBooted);
+  const isLocked = useWindowStore((state) => state.isLocked);
+  const setLocked = useWindowStore((state) => state.setLocked);
   const { openMenu } = useContextMenuStore();
 
   useKeyboardShortcuts();
@@ -61,7 +63,7 @@ export default function Desktop() {
   };
 
   const handleUnlock = () => {
-    setIsLocked(false);
+    setLocked(false);
   };
 
   return (
@@ -70,8 +72,8 @@ export default function Desktop() {
       className="relative w-full h-full overflow-hidden text-white font-sans bg-[#0a0a0a] transition-colors duration-500"
     >
       <AnimatePresence>
-        {showSplash && <SplashScreen key="splash" onComplete={() => setShowSplash(false)} />}
-        {!showSplash && isLocked && <LockScreen key="lock" onUnlock={handleUnlock} />}
+        {!isBooted && <SplashScreen key="splash" onComplete={() => setBooted(true)} />}
+        {isBooted && isLocked && <LockScreen key="lock" onUnlock={handleUnlock} />}
       </AnimatePresence>
       
       <OfflineDetector />
