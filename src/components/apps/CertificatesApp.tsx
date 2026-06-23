@@ -5,6 +5,7 @@ import { insforge } from '@/lib/insforge';
 import { useBrowserStore } from './BrowserApp';
 import { useWindowStore } from '@/store/useWindowStore';
 import { useTranslations, useLocale } from 'next-intl';
+import { translateDate } from '@/utils/dateTranslator';
 
 export default function CertificatesApp() {
   const [certificates, setCertificates] = useState<any[]>([]);
@@ -145,7 +146,7 @@ export default function CertificatesApp() {
                 <div className="mt-auto pt-6 flex flex-wrap items-center gap-4">
                   <div className="flex items-center gap-1.5 text-xs font-medium text-black/50 dark:text-white/50">
                     <Calendar size={14} />
-                    <span>{cert.date}</span>
+                    <span>{translateDate(cert.date, isEs)}</span>
                   </div>
                 </div>
 

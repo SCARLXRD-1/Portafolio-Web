@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Briefcase, Loader2, Calendar } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { insforge } from '@/lib/insforge';
+import { translateDate } from '@/utils/dateTranslator';
 
 export default function ExperienceApp() {
   const t = useTranslations('Dock');
@@ -71,7 +72,7 @@ export default function ExperienceApp() {
                   <h2 className="text-xl font-bold">{locale === 'es' ? exp.title_es : exp.title_en}</h2>
                   <div className="flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full w-fit">
                     <Calendar size={14} />
-                    <span>{exp.start_date} - {exp.end_date}</span>
+                    <span>{translateDate(exp.start_date, isEs)} - {translateDate(exp.end_date, isEs)}</span>
                   </div>
                 </div>
                 
