@@ -116,20 +116,39 @@ export default function AdminSkills() {
               >
                 <option value="Frontend">Frontend</option>
                 <option value="Backend">Backend</option>
-                <option value="Herramientas">Herramientas</option>
+                <option value="Mobile">Mobile</option>
                 <option value="Bases de Datos">Bases de Datos</option>
+                <option value="Cloud">Cloud</option>
+                <option value="DevOps">DevOps</option>
+                <option value="Herramientas">Herramientas</option>
                 <option value="Diseño">Diseño</option>
+                <option value="Lenguajes">Lenguajes</option>
+                <option value="APIs e Integraciones">APIs e Integraciones</option>
+                <option value="Inteligencia Artificial">Inteligencia Artificial</option>
+                <option value="Testing">Testing</option>
+                <option value="Seguridad">Seguridad</option>
+                <option value="CMS">CMS</option>
+                <option value="E-commerce">E-commerce</option>
+                <option value="Control de Versiones">Control de Versiones</option>
+                <option value="Sistemas Operativos">Sistemas Operativos</option>
+                <option value="Arquitectura de Software">Arquitectura de Software</option>
+                <option value="Metodologías Ágiles">Metodologías Ágiles</option>
                 <option value="Otros">Otros</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">Icono (URL o Código SVG)</label>
+              <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">
+                Icono Nativo, URL o Código SVG
+                <span className="block text-xs font-normal text-black/50 dark:text-white/50 mt-0.5">
+                  Escribe un nombre de simpleicons.org (ej: react, nodedotjs, docker), o pega una URL/SVG.
+                </span>
+              </label>
               <input 
                 type="text" 
                 value={formData.icon}
-                onChange={e => setFormData({...formData, icon: e.target.value})}
+                onChange={e => setFormData({...formData, icon: e.target.value.toLowerCase()})}
                 className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" 
-                placeholder="https://... o <svg>...</svg>" 
+                placeholder="react, nodedotjs, figma, o https://..." 
               />
             </div>
             <div>

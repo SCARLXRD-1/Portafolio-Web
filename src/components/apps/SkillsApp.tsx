@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { Code2, Server, Layout, Database, Wrench, Paintbrush, Loader2 } from 'lucide-react';
+import { Code2, Server, Layout, Database, Wrench, Paintbrush, Loader2, Smartphone, Cloud, Terminal, Languages, Blocks, BrainCircuit, TestTube, ShieldCheck, ShoppingCart, GitBranch, Monitor, Network, RotateCcw } from 'lucide-react';
 import { insforge } from '@/lib/insforge';
 
 export default function SkillsApp() {
@@ -36,9 +36,23 @@ export default function SkillsApp() {
     switch (catName) {
       case 'Frontend': return <Layout className="text-blue-400" size={20} />;
       case 'Backend': return <Server className="text-green-400" size={20} />;
+      case 'Mobile': return <Smartphone className="text-indigo-400" size={20} />;
       case 'Bases de Datos': return <Database className="text-purple-400" size={20} />;
+      case 'Cloud': return <Cloud className="text-sky-400" size={20} />;
+      case 'DevOps': return <Terminal className="text-slate-400" size={20} />;
       case 'Herramientas': return <Wrench className="text-orange-400" size={20} />;
       case 'Diseño': return <Paintbrush className="text-pink-400" size={20} />;
+      case 'Lenguajes': return <Languages className="text-yellow-400" size={20} />;
+      case 'APIs e Integraciones': return <Blocks className="text-emerald-400" size={20} />;
+      case 'Inteligencia Artificial': return <BrainCircuit className="text-violet-400" size={20} />;
+      case 'Testing': return <TestTube className="text-red-400" size={20} />;
+      case 'Seguridad': return <ShieldCheck className="text-red-500" size={20} />;
+      case 'CMS': return <Layout className="text-cyan-400" size={20} />;
+      case 'E-commerce': return <ShoppingCart className="text-amber-400" size={20} />;
+      case 'Control de Versiones': return <GitBranch className="text-orange-500" size={20} />;
+      case 'Sistemas Operativos': return <Monitor className="text-gray-400" size={20} />;
+      case 'Arquitectura de Software': return <Network className="text-blue-500" size={20} />;
+      case 'Metodologías Ágiles': return <RotateCcw className="text-emerald-500" size={20} />;
       default: return <Code2 className="text-gray-400" size={20} />;
     }
   };
@@ -86,8 +100,10 @@ export default function SkillsApp() {
                         <div className="w-10 h-10 flex items-center justify-center mb-2 text-white/70 group-hover/skill:text-white transition-colors">
                           {skill.icon && skill.icon.startsWith('<svg') ? (
                             <div dangerouslySetInnerHTML={{ __html: skill.icon }} className="w-8 h-8" />
-                          ) : skill.icon ? (
+                          ) : skill.icon && skill.icon.includes('://') ? (
                             <img src={skill.icon} alt={skill.name} className="w-8 h-8 object-contain" />
+                          ) : skill.icon ? (
+                            <img src={`https://cdn.simpleicons.org/${skill.icon}/white`} alt={skill.name} className="w-8 h-8 object-contain drop-shadow-md" />
                           ) : (
                             <Code2 size={24} />
                           )}
