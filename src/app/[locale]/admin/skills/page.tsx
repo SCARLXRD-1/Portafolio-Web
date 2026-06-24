@@ -14,9 +14,12 @@ export default function AdminSkills() {
     name: '',
     category: 'Frontend',
     icon: '',
-    proficiency: 100,
+    proficiency: 80,
     sort_order: 0
   });
+
+  const [iconSuggestions, setIconSuggestions] = useState<string[]>([]);
+  const [searchingIcon, setSearchingIcon] = useState(false);
 
   useEffect(() => {
     fetchSkills();
@@ -40,6 +43,33 @@ export default function AdminSkills() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    const searchIcon = async () => {
+      const query = formData.icon.trim();
+      if (query.length < 3 || query.includes(':') || query.includes('<svg') || query.includes('://')) {
+        setIconSuggestions([]);
+        return;
+      }
+      setSearchingIcon(true);
+      try {
+        const res = await fetch(`https://api.iconify.design/search?query=${query}&limit=12`);
+        const data = await res.json();
+        if (data.icons) {
+          setIconSuggestions(data.icons);
+        } else {
+          setIconSuggestions([]);
+        }
+      } catch (error) {
+        console.error('Error fetching icons:', error);
+      } finally {
+        setSearchingIcon(false);
+      }
+    };
+
+    const debounce = setTimeout(searchIcon, 500);
+    return () => clearTimeout(debounce);
+  }, [formData.icon]);
 
   const handleAdd = async () => {
     if (!formData.name || !formData.category) return;
@@ -68,7 +98,7 @@ export default function AdminSkills() {
       fetchSkills();
       toast.success('Habilidad guardada correctamente');
     } catch (err: any) {
-      toast.error('Error: ' + err.message);
+      toast.error('Error cargando habilidades: ' + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -156,21 +186,56 @@ export default function AdminSkills() {
                 <option value="Otros">Otros</option>
               </select>
             </div>
-            <div>
+            <div className="relative">
               <label htmlFor="skill-icon" className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">
                 Icono Nativo (Iconify), URL o Código SVG
                 <span className="block text-xs font-normal text-black/50 dark:text-white/50 mt-0.5">
-                  Busca en <a href="https://icones.js.org/" target="_blank" rel="noreferrer" className="text-emerald-500 hover:underline">icones.js.org</a> (ej: skill-icons:react-dark, devicon:html5). También soporta slugs de simple-icons o URLs.
+                  Busca el nombre exacto o <span className="text-emerald-500">escribe una palabra (ej: react) para ver sugerencias automáticas</span>.
                 </span>
               </label>
-              <input 
-                id="skill-icon"
-                type="text" 
-                value={formData.icon}
-                onChange={e => setFormData({...formData, icon: e.target.value.toLowerCase()})}
-                className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" 
-                placeholder="devicon:html5, skill-icons:react-dark, etc." 
-              />
+              <div className="relative">
+                <input 
+                  id="skill-icon"
+                  type="text" 
+                  value={formData.icon}
+                  onChange={e => setFormData({...formData, icon: e.target.value.toLowerCase()})}
+                  className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 pr-10" 
+                  placeholder="devicon:html5, skill-icons:react-dark, etc." 
+                  autoComplete="off"
+                />
+                {searchingIcon && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
+                  </div>
+                )}
+              </div>
+              
+              {/* Suggestions Dropdown */}
+              {iconSuggestions.length > 0 && (
+                <div className="absolute z-10 w-full mt-2 bg-white dark:bg-[#111] border border-black/10 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto p-2">
+                  <div className="text-xs font-medium text-black/40 dark:text-white/40 mb-2 px-1">Sugerencias encontradas:</div>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {iconSuggestions.map(iconName => (
+                      <button
+                        key={iconName}
+                        type="button"
+                        onClick={() => {
+                          setFormData({...formData, icon: iconName});
+                          setIconSuggestions([]);
+                        }}
+                        className="flex flex-col items-center justify-center p-2 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-emerald-500/10 dark:hover:bg-emerald-500/20 border border-transparent hover:border-emerald-500/30 transition-all group"
+                      >
+                        <div className="w-8 h-8 mb-1.5 flex items-center justify-center text-black dark:text-white group-hover:text-emerald-500 transition-colors">
+                           <Icon icon={iconName} className="w-full h-full" />
+                        </div>
+                        <span className="text-[10px] text-center text-black/60 dark:text-white/60 group-hover:text-emerald-500 truncate w-full" title={iconName}>
+                          {iconName.split(':')[1]}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <label htmlFor="skill-proficiency" className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">Nivel de Dominio (%)</label>
