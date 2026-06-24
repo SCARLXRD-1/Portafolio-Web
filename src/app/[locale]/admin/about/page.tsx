@@ -150,9 +150,12 @@ export default function AdminAbout() {
       const fileName = `CV_Jhonatan_Jimenez_${lang}.${fileExt}`;
       const filePath = `cv/${fileName}`;
 
+      // Remove existing file first (ignoring errors if it doesn't exist)
+      await insforge.storage.from('portfolio-assets').remove(filePath);
+
       const { data, error } = await insforge.storage
         .from('portfolio-assets')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, file);
 
       if (error) throw error;
 
