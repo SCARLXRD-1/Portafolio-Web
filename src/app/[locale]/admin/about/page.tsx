@@ -146,20 +146,21 @@ export default function AdminAbout() {
     
     setUploadingCv(lang);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `cv-${lang}-${Date.now()}.${fileExt}`;
+      const fileExt = file.name.split('.').pop() || 'pdf';
+      const fileName = `CV_Jhonatan_Jimenez_${lang}.${fileExt}`;
       const filePath = `cv/${fileName}`;
 
       const { data, error } = await insforge.storage
         .from('portfolio-assets')
-        .upload(filePath, file);
+        .upload(filePath, file, { upsert: true });
 
       if (error) throw error;
 
       if (data?.url) {
+        const urlWithCacheBuster = `${data.url}?v=${Date.now()}`;
         setFormData((prev) => ({ 
           ...prev, 
-          [lang === 'es' ? 'cv_url_es' : 'cv_url_en']: data.url 
+          [lang === 'es' ? 'cv_url_es' : 'cv_url_en']: urlWithCacheBuster 
         }));
         toast.success(`CV en ${lang === 'es' ? 'Español' : 'Inglés'} subido correctamente. Recuerda guardar.`);
       }
