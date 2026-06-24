@@ -12,7 +12,8 @@ type ProfileSettings = {
   location_en: string;
   bio_es: string;
   bio_en: string;
-  cv_url: string;
+  cv_url_es: string;
+  cv_url_en: string;
   public_email: string;
   avatar_url: string;
 };
@@ -22,6 +23,7 @@ export default function AdminAbout() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingCv, setUploadingCv] = useState<'es' | 'en' | null>(null);
   
   const [formData, setFormData] = useState<ProfileSettings>({
     display_name: '',
@@ -31,7 +33,8 @@ export default function AdminAbout() {
     location_en: '',
     bio_es: '',
     bio_en: '',
-    cv_url: '',
+    cv_url_es: '',
+    cv_url_en: '',
     public_email: '',
     avatar_url: '',
   });
@@ -60,7 +63,8 @@ export default function AdminAbout() {
           location_en: data.location_en || '',
           bio_es: data.bio_es || '',
           bio_en: data.bio_en || '',
-          cv_url: data.cv_url || '',
+          cv_url_es: data.cv_url_es || '',
+          cv_url_en: data.cv_url_en || '',
           public_email: data.public_email || '',
           avatar_url: data.avatar_url || '',
         });
@@ -90,7 +94,8 @@ export default function AdminAbout() {
           location_en: formData.location_en,
           bio_es: formData.bio_es,
           bio_en: formData.bio_en,
-          cv_url: formData.cv_url,
+          cv_url_es: formData.cv_url_es,
+          cv_url_en: formData.cv_url_en,
           public_email: formData.public_email,
           avatar_url: formData.avatar_url,
           updated_at: new Date().toISOString()
@@ -132,6 +137,37 @@ export default function AdminAbout() {
       toast.error('Error al subir la imagen: ' + error.message);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleCvUpload = async (e: React.ChangeEvent<HTMLInputElement>, lang: 'es' | 'en') => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    
+    setUploadingCv(lang);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `cv-${lang}-${Date.now()}.${fileExt}`;
+      const filePath = `cv/${fileName}`;
+
+      const { data, error } = await insforge.storage
+        .from('portfolio-assets')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      if (data?.url) {
+        setFormData((prev) => ({ 
+          ...prev, 
+          [lang === 'es' ? 'cv_url_es' : 'cv_url_en']: data.url 
+        }));
+        toast.success(`CV en ${lang === 'es' ? 'Español' : 'Inglés'} subido correctamente. Recuerda guardar.`);
+      }
+    } catch (error: any) {
+      console.error('Error uploading CV:', error);
+      toast.error('Error al subir el CV: ' + error.message);
+    } finally {
+      setUploadingCv(null);
     }
   };
 
@@ -243,10 +279,38 @@ export default function AdminAbout() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-black/10 dark:border-white/10">
-            <div>
-              <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">Enlace a CV (PDF)</label>
-              <input name="cv_url" value={formData.cv_url} onChange={handleChange} type="text" className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="URL del CV..." />
+            <div className={activeTab === 'es' ? 'block' : 'hidden'}>
+              <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">Subir CV (PDF - Español)</label>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="file" 
+                  accept="application/pdf"
+                  onChange={(e) => handleCvUpload(e, 'es')}
+                  disabled={uploadingCv === 'es'}
+                  className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-sm text-black dark:text-white file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-500/10 file:text-emerald-500 hover:file:bg-emerald-500/20" 
+                />
+                {formData.cv_url_es && (
+                  <a href={formData.cv_url_es} target="_blank" rel="noreferrer" className="text-emerald-500 hover:underline text-sm shrink-0">Ver Actual</a>
+                )}
+              </div>
             </div>
+            
+            <div className={activeTab === 'en' ? 'block' : 'hidden'}>
+              <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">Subir CV (PDF - Inglés)</label>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="file" 
+                  accept="application/pdf"
+                  onChange={(e) => handleCvUpload(e, 'en')}
+                  disabled={uploadingCv === 'en'}
+                  className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-sm text-black dark:text-white file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-500/10 file:text-emerald-500 hover:file:bg-emerald-500/20" 
+                />
+                {formData.cv_url_en && (
+                  <a href={formData.cv_url_en} target="_blank" rel="noreferrer" className="text-emerald-500 hover:underline text-sm shrink-0">Ver Actual</a>
+                )}
+              </div>
+            </div>
+            
             <div>
               <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">Email Público</label>
               <input name="public_email" value={formData.public_email} onChange={handleChange} type="email" className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="correo@ejemplo.com" />

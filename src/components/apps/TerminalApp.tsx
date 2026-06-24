@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useWindowStore } from '@/store/useWindowStore';
 import { useThemeStore } from '@/store/useThemeStore';
+import { insforge } from '@/lib/insforge';
 
 interface CommandLog {
   command: string;
@@ -13,8 +14,10 @@ interface CommandLog {
 
 export default function TerminalApp() {
   const t = useTranslations('Terminal');
+  const locale = useLocale();
   const [input, setInput] = useState('');
   const [logs, setLogs] = useState<CommandLog[]>([]);
+  const [cvUrls, setCvUrls] = useState<{es: string, en: string}>({es: '', en: ''});
   const bottomRef = useRef<HTMLDivElement>(null);
   const openWindow = useWindowStore((state) => state.openWindow);
   const setTheme = useThemeStore((state) => state.setTheme);
@@ -22,6 +25,22 @@ export default function TerminalApp() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
+
+  useEffect(() => {
+    const loadCVs = async () => {
+      try {
+        const { data } = await insforge.database
+          .from('profile_settings')
+          .select('cv_url_es, cv_url_en')
+          .eq('id', '00000000-0000-0000-0000-000000000001')
+          .single();
+        if (data) {
+          setCvUrls({ es: data.cv_url_es || '', en: data.cv_url_en || '' });
+        }
+      } catch (e) {}
+    };
+    loadCVs();
+  }, []);
 
   const handleCommand = (cmd: string) => {
     const trimmed = cmd.trim().toLowerCase();
@@ -78,14 +97,19 @@ export default function TerminalApp() {
         break;
       case 'fetch':
         if (args === 'cv') {
-          output = (
-            <div className="text-gray-300 font-mono">
-              <div>Resolving cv.pdf... 100%</div>
-              <div>Downloading [====================] 100%</div>
-              <div className="text-emerald-400 mt-1">CV successfully fetched. Opening...</div>
-            </div>
-          );
-          setTimeout(() => window.open('/cv.pdf', '_blank'), 1000);
+          const cvUrl = locale === 'en' ? cvUrls.en : cvUrls.es;
+          if (!cvUrl) {
+            output = <span className="text-red-400">CV not available / CV no disponible.</span>;
+          } else {
+            output = (
+              <div className="text-gray-300 font-mono">
+                <div>Resolving cv.pdf... 100%</div>
+                <div>Downloading [====================] 100%</div>
+                <div className="text-emerald-400 mt-1">CV successfully fetched. Opening...</div>
+              </div>
+            );
+            setTimeout(() => window.open(cvUrl, '_blank'), 1000);
+          }
         } else {
           output = <span className="text-red-400">Usage: fetch cv</span>;
         }
