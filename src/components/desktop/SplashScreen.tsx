@@ -68,181 +68,50 @@ function ScanLines() {
   );
 }
 
-/* ─── AD Logo (solid filled shapes matching the brand identity) ─── */
+/* ─── AD Logo (Exact Brand Logo) ─── */
 function ADLogo({ glowIntensity = 0 }: { glowIntensity?: number }) {
   return (
-    <svg
-      viewBox="0 0 320 260"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-[200px] h-[170px] md:w-[280px] md:h-[230px]"
+    <motion.div
+      className="relative flex items-center justify-center w-[200px] h-[170px] md:w-[280px] md:h-[230px]"
+      initial={{ filter: 'drop-shadow(0px 0px 0px rgba(52, 211, 153, 0))' }}
+      animate={{ filter: `drop-shadow(0px 0px ${15 + glowIntensity * 15}px rgba(52, 211, 153, ${0.3 + glowIntensity * 0.3}))` }}
+      transition={{ duration: 2, ease: "easeInOut", repeat: Infinity, repeatType: "reverse" }}
     >
-      <defs>
-        {/* Soft glow */}
-        <filter id="logoGlow" x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation={3 + glowIntensity * 6} result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-
-        <filter id="coreGlow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation={2 + glowIntensity * 3} result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-
-        {/* Metallic gradient for letters */}
-        <linearGradient id="letterFill" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#e5e7eb" />
-          <stop offset="40%" stopColor="#f9fafb" />
-          <stop offset="100%" stopColor="#9ca3af" />
-        </linearGradient>
-
-        {/* Blue accent */}
-        <linearGradient id="blueAccent" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#93c5fd" />
-          <stop offset="100%" stopColor="#3b82f6" />
-        </linearGradient>
-
-        {/* Green bar */}
-        <linearGradient id="greenBar" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#34d399" />
-          <stop offset="100%" stopColor="#10b981" />
-        </linearGradient>
-
-        {/* Clip paths for reveal animations */}
-        <clipPath id="revealA">
-          <motion.rect
-            x="0" y="0" width="200" height="260"
-            initial={{ height: 0 }}
-            animate={{ height: 260 }}
-            transition={{ duration: 1.0, ease: 'easeInOut', delay: 0.3 }}
-          />
-        </clipPath>
-
-        <clipPath id="revealD">
-          <motion.rect
-            x="140" y="0" width="180" height="260"
-            initial={{ height: 0 }}
-            animate={{ height: 260 }}
-            transition={{ duration: 1.0, ease: 'easeInOut', delay: 0.6 }}
-          />
-        </clipPath>
-      </defs>
-
-      {/* ─── Letter "A" — solid filled triangle with crossbar cutout ─── */}
-      <g filter="url(#logoGlow)" clipPath="url(#revealA)">
-        <motion.path
-          d={`
-            M 120 15
-            L 195 230
-            L 170 230
-            L 148 170
-            L 68 170
-            L 45 230
-            L 20 230
-            L 95 15
-            Z
-            M 108 55
-            L 76 145
-            L 140 145
-            Z
-          `}
-          fill="url(#letterFill)"
-          fillRule="evenodd"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
+      <motion.img
+        src="/logopes.svg"
+        alt="AKASHI DEV"
+        className="w-full h-full object-contain drop-shadow-xl"
+        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
+      />
+      
+      {/* ─── Sweep Shimmer Effect ─── */}
+      <div
+        className="absolute inset-0 z-10 pointer-events-none"
+        style={{
+          maskImage: 'url(/logopes.svg)',
+          maskSize: 'contain',
+          maskRepeat: 'no-repeat',
+          maskPosition: 'center',
+          WebkitMaskImage: 'url(/logopes.svg)',
+          WebkitMaskSize: 'contain',
+          WebkitMaskRepeat: 'no-repeat',
+          WebkitMaskPosition: 'center',
+        }}
+      >
+        <motion.div
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%)',
+            width: '200%',
+          }}
+          initial={{ x: '-100%' }}
+          animate={{ x: '50%' }}
+          transition={{ duration: 2.5, delay: 1.5, ease: 'easeInOut', repeat: Infinity, repeatDelay: 3 }}
         />
-      </g>
-
-      {/* ─── Blue accent line (left edge of A) ─── */}
-      <motion.path
-        d={`
-          M 95 15
-          L 20 230
-          L 25 230
-          L 100 20
-          Z
-        `}
-        fill="url(#blueAccent)"
-        filter="url(#coreGlow)"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut', delay: 1.3 }}
-      />
-
-      {/* ─── Green trapezoid at base of A ─── */}
-      <motion.path
-        d={`
-          M 72 195
-          L 78 178
-          L 138 178
-          L 144 195
-          Z
-        `}
-        fill="url(#greenBar)"
-        filter="url(#coreGlow)"
-        initial={{ scaleX: 0, opacity: 0 }}
-        animate={{ scaleX: 1, opacity: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut', delay: 1.5 }}
-        style={{ transformOrigin: '108px 186px' }}
-      />
-
-      {/* ─── Letter "D" — solid filled shape ─── */}
-      <g filter="url(#logoGlow)" clipPath="url(#revealD)">
-        <motion.path
-          d={`
-            M 155 15
-            L 180 15
-            L 220 15
-            C 260 15, 295 50, 300 95
-            C 305 140, 290 190, 255 215
-            C 240 225, 220 230, 200 230
-            L 155 230
-            Z
-            M 180 42
-            L 180 203
-            L 200 203
-            C 220 203, 240 195, 252 180
-            C 265 163, 272 138, 270 112
-            C 268 85, 258 62, 240 50
-            C 230 43, 215 42, 200 42
-            Z
-          `}
-          fill="url(#letterFill)"
-          fillRule="evenodd"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-        />
-      </g>
-
-      {/* ─── Subtle highlight shimmer ─── */}
-      <motion.rect
-        x="0"
-        y="0"
-        width="40"
-        height="260"
-        fill="url(#shimmer)"
-        opacity="0.12"
-        initial={{ x: -40 }}
-        animate={{ x: 340 }}
-        transition={{ duration: 1.5, delay: 2.0, ease: 'easeInOut' }}
-      />
-      <defs>
-        <linearGradient id="shimmer" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="white" stopOpacity="0" />
-          <stop offset="50%" stopColor="white" stopOpacity="0.4" />
-          <stop offset="100%" stopColor="white" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-    </svg>
+      </div>
+    </motion.div>
   );
 }
 
