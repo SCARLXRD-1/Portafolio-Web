@@ -68,28 +68,27 @@ function ScanLines() {
   );
 }
 
-/* ─── AD Logo (recreated in SVG matching the brand identity) ─── */
+/* ─── AD Logo (solid filled shapes matching the brand identity) ─── */
 function ADLogo({ glowIntensity = 0 }: { glowIntensity?: number }) {
   return (
     <svg
-      viewBox="0 0 280 220"
+      viewBox="0 0 320 260"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="w-[180px] h-[160px] md:w-[260px] md:h-[220px]"
+      className="w-[200px] h-[170px] md:w-[280px] md:h-[230px]"
     >
       <defs>
-        {/* Main glow filter */}
-        <filter id="logoGlow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation={4 + glowIntensity * 8} result="blur" />
+        {/* Soft glow */}
+        <filter id="logoGlow" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation={3 + glowIntensity * 6} result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
 
-        {/* Intense core glow */}
         <filter id="coreGlow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation={2 + glowIntensity * 4} result="blur" />
+          <feGaussianBlur stdDeviation={2 + glowIntensity * 3} result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
             <feMergeNode in="blur" />
@@ -97,160 +96,152 @@ function ADLogo({ glowIntensity = 0 }: { glowIntensity?: number }) {
           </feMerge>
         </filter>
 
-        {/* Letter gradient — light metallic */}
-        <linearGradient id="letterGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#d1d5db" />
-          <stop offset="50%" stopColor="#f9fafb" />
+        {/* Metallic gradient for letters */}
+        <linearGradient id="letterFill" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#e5e7eb" />
+          <stop offset="40%" stopColor="#f9fafb" />
           <stop offset="100%" stopColor="#9ca3af" />
         </linearGradient>
 
-        {/* Blue accent gradient (left edge of A) */}
+        {/* Blue accent */}
         <linearGradient id="blueAccent" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#60a5fa" />
+          <stop offset="0%" stopColor="#93c5fd" />
           <stop offset="100%" stopColor="#3b82f6" />
         </linearGradient>
 
-        {/* Green bar gradient (base of A) */}
+        {/* Green bar */}
         <linearGradient id="greenBar" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#34d399" />
           <stop offset="100%" stopColor="#10b981" />
         </linearGradient>
+
+        {/* Clip paths for reveal animations */}
+        <clipPath id="revealA">
+          <motion.rect
+            x="0" y="0" width="200" height="260"
+            initial={{ height: 0 }}
+            animate={{ height: 260 }}
+            transition={{ duration: 1.0, ease: 'easeInOut', delay: 0.3 }}
+          />
+        </clipPath>
+
+        <clipPath id="revealD">
+          <motion.rect
+            x="140" y="0" width="180" height="260"
+            initial={{ height: 0 }}
+            animate={{ height: 260 }}
+            transition={{ duration: 1.0, ease: 'easeInOut', delay: 0.6 }}
+          />
+        </clipPath>
       </defs>
 
-      {/* ─── Letter "A" — outer triangle shape ─── */}
-      <g filter="url(#logoGlow)">
-        {/* A — left leg */}
+      {/* ─── Letter "A" — solid filled triangle with crossbar cutout ─── */}
+      <g filter="url(#logoGlow)" clipPath="url(#revealA)">
         <motion.path
-          d="M 40 190 L 110 25 L 130 25"
-          stroke="url(#letterGrad)"
-          strokeWidth="20"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 0.8, ease: 'easeInOut', delay: 0.2 }}
-        />
-        {/* A — right leg */}
-        <motion.path
-          d="M 130 25 L 180 190"
-          stroke="url(#letterGrad)"
-          strokeWidth="20"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 0.7, ease: 'easeInOut', delay: 0.6 }}
-        />
-        {/* A — crossbar */}
-        <motion.path
-          d="M 72 130 L 155 130"
-          stroke="url(#letterGrad)"
-          strokeWidth="14"
-          strokeLinecap="round"
-          fill="none"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 0.8 }}
-          transition={{ duration: 0.5, ease: 'easeOut', delay: 1.0 }}
+          d={`
+            M 120 15
+            L 195 230
+            L 170 230
+            L 148 170
+            L 68 170
+            L 45 230
+            L 20 230
+            L 95 15
+            Z
+            M 108 55
+            L 76 145
+            L 140 145
+            Z
+          `}
+          fill="url(#letterFill)"
+          fillRule="evenodd"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
         />
       </g>
 
-      {/* ─── Blue accent line (left edge of A triangle) ─── */}
+      {/* ─── Blue accent line (left edge of A) ─── */}
       <motion.path
-        d="M 42 186 L 108 30"
-        stroke="url(#blueAccent)"
-        strokeWidth="5"
-        strokeLinecap="round"
-        fill="none"
+        d={`
+          M 95 15
+          L 20 230
+          L 25 230
+          L 100 20
+          Z
+        `}
+        fill="url(#blueAccent)"
         filter="url(#coreGlow)"
-        initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: 1, opacity: 1 }}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut', delay: 1.3 }}
       />
 
-      {/* ─── Green bar at base of A ─── */}
-      <motion.rect
-        x="72"
-        y="162"
-        width="70"
-        height="18"
-        rx="3"
+      {/* ─── Green trapezoid at base of A ─── */}
+      <motion.path
+        d={`
+          M 72 195
+          L 78 178
+          L 138 178
+          L 144 195
+          Z
+        `}
         fill="url(#greenBar)"
         filter="url(#coreGlow)"
         initial={{ scaleX: 0, opacity: 0 }}
         animate={{ scaleX: 1, opacity: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut', delay: 1.5 }}
-        style={{ transformOrigin: '72px 171px' }}
+        style={{ transformOrigin: '108px 186px' }}
       />
 
-      {/* ─── Letter "D" — overlapping with right side of A ─── */}
-      <g filter="url(#logoGlow)">
-        {/* D — vertical stem */}
+      {/* ─── Letter "D" — solid filled shape ─── */}
+      <g filter="url(#logoGlow)" clipPath="url(#revealD)">
         <motion.path
-          d="M 150 30 L 150 190"
-          stroke="url(#letterGrad)"
-          strokeWidth="20"
-          strokeLinecap="round"
-          fill="none"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 0.7, ease: 'easeInOut', delay: 0.4 }}
-        />
-        {/* D — curved bowl */}
-        <motion.path
-          d="M 150 30 C 150 30, 250 30, 250 110 C 250 190, 150 190, 150 190"
-          stroke="url(#letterGrad)"
-          strokeWidth="20"
-          strokeLinecap="round"
-          fill="none"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 1.0, ease: 'easeInOut', delay: 0.8 }}
+          d={`
+            M 155 15
+            L 180 15
+            L 220 15
+            C 260 15, 295 50, 300 95
+            C 305 140, 290 190, 255 215
+            C 240 225, 220 230, 200 230
+            L 155 230
+            Z
+            M 180 42
+            L 180 203
+            L 200 203
+            C 220 203, 240 195, 252 180
+            C 265 163, 272 138, 270 112
+            C 268 85, 258 62, 240 50
+            C 230 43, 215 42, 200 42
+            Z
+          `}
+          fill="url(#letterFill)"
+          fillRule="evenodd"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
         />
       </g>
 
-      {/* ─── Inner cutout of D (the negative space) — subtle highlight ─── */}
-      <motion.path
-        d="M 160 55 C 160 55, 225 55, 225 110 C 225 165, 160 165, 160 165"
-        stroke="rgba(255,255,255,0.08)"
-        strokeWidth="8"
-        strokeLinecap="round"
-        fill="none"
-        initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: 1, opacity: 1 }}
-        transition={{ duration: 0.8, ease: 'easeOut', delay: 1.8 }}
+      {/* ─── Subtle highlight shimmer ─── */}
+      <motion.rect
+        x="0"
+        y="0"
+        width="40"
+        height="260"
+        fill="url(#shimmer)"
+        opacity="0.12"
+        initial={{ x: -40 }}
+        animate={{ x: 340 }}
+        transition={{ duration: 1.5, delay: 2.0, ease: 'easeInOut' }}
       />
-
-      {/* ─── Glow pulse on intersection point ─── */}
-      <motion.circle
-        cx="150"
-        cy="110"
-        r="6"
-        fill="rgba(52, 211, 153, 0.6)"
-        filter="url(#coreGlow)"
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ 
-          scale: [0, 1.5, 1],
-          opacity: [0, 0.8, 0.4],
-        }}
-        transition={{ duration: 1, delay: 2.0, ease: 'easeOut' }}
-        style={{ transformOrigin: '150px 110px' }}
-      />
-      <motion.circle
-        cx="150"
-        cy="110"
-        r="3"
-        fill="rgba(96, 165, 250, 0.8)"
-        filter="url(#coreGlow)"
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ 
-          scale: [0, 1, 1],
-          opacity: [0, 1, 0.6],
-        }}
-        transition={{ duration: 0.8, delay: 2.2, ease: 'easeOut' }}
-        style={{ transformOrigin: '150px 110px' }}
-      />
+      <defs>
+        <linearGradient id="shimmer" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="white" stopOpacity="0" />
+          <stop offset="50%" stopColor="white" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="white" stopOpacity="0" />
+        </linearGradient>
+      </defs>
     </svg>
   );
 }
