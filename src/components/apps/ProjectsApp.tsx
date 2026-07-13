@@ -140,7 +140,8 @@ export default function ProjectsApp() {
     if (item.type === 'folder') {
       navigateTo(item.id);
     } else if (item.type === 'project' && item.url) {
-      window.open(item.url, '_blank', 'noopener,noreferrer');
+      navigate(item.url);
+      openWindow('browser');
     } else if (item.type === 'text' || item.type === 'image') {
       setOpenFile(item);
     }
