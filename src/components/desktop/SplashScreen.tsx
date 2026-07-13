@@ -68,14 +68,14 @@ function ScanLines() {
   );
 }
 
-/* ─── AK Logo (recreated in SVG) ─── */
-function AKLogo({ glowIntensity = 0 }: { glowIntensity?: number }) {
+/* ─── AD Logo (recreated in SVG matching the brand identity) ─── */
+function ADLogo({ glowIntensity = 0 }: { glowIntensity?: number }) {
   return (
     <svg
-      viewBox="0 0 260 220"
+      viewBox="0 0 280 220"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="w-[180px] h-[160px] md:w-[240px] md:h-[200px]"
+      className="w-[180px] h-[160px] md:w-[260px] md:h-[220px]"
     >
       <defs>
         {/* Main glow filter */}
@@ -97,37 +97,33 @@ function AKLogo({ glowIntensity = 0 }: { glowIntensity?: number }) {
           </feMerge>
         </filter>
 
-        {/* Gradient fills */}
+        {/* Letter gradient — light metallic */}
         <linearGradient id="letterGrad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#d1d5db" />
           <stop offset="50%" stopColor="#f9fafb" />
           <stop offset="100%" stopColor="#9ca3af" />
         </linearGradient>
 
-        <linearGradient id="letterEdge" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#e5e7eb" />
-          <stop offset="100%" stopColor="#6b7280" />
+        {/* Blue accent gradient (left edge of A) */}
+        <linearGradient id="blueAccent" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#60a5fa" />
+          <stop offset="100%" stopColor="#3b82f6" />
         </linearGradient>
 
-        <linearGradient id="diamondGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#22d3ee" />
-          <stop offset="50%" stopColor="#06b6d4" />
-          <stop offset="100%" stopColor="#0891b2" />
-        </linearGradient>
-
-        <linearGradient id="termGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#d1d5db" />
-          <stop offset="100%" stopColor="#9ca3af" />
+        {/* Green bar gradient (base of A) */}
+        <linearGradient id="greenBar" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#34d399" />
+          <stop offset="100%" stopColor="#10b981" />
         </linearGradient>
       </defs>
 
-      {/* ─── Letter "A" ─── */}
+      {/* ─── Letter "A" — outer triangle shape ─── */}
       <g filter="url(#logoGlow)">
         {/* A — left leg */}
         <motion.path
-          d="M 30 180 L 90 20 L 110 20 L 85 90"
+          d="M 40 190 L 110 25 L 130 25"
           stroke="url(#letterGrad)"
-          strokeWidth="18"
+          strokeWidth="20"
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
@@ -135,123 +131,126 @@ function AKLogo({ glowIntensity = 0 }: { glowIntensity?: number }) {
           animate={{ pathLength: 1, opacity: 1 }}
           transition={{ duration: 0.8, ease: 'easeInOut', delay: 0.2 }}
         />
-        {/* A — right leg (shorter, partial) */}
+        {/* A — right leg */}
         <motion.path
-          d="M 110 20 L 140 100"
+          d="M 130 25 L 180 190"
           stroke="url(#letterGrad)"
-          strokeWidth="18"
+          strokeWidth="20"
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 0.6, ease: 'easeInOut', delay: 0.6 }}
+          transition={{ duration: 0.7, ease: 'easeInOut', delay: 0.6 }}
         />
         {/* A — crossbar */}
         <motion.path
-          d="M 55 120 L 120 120"
-          stroke="url(#letterEdge)"
-          strokeWidth="12"
+          d="M 72 130 L 155 130"
+          stroke="url(#letterGrad)"
+          strokeWidth="14"
           strokeLinecap="round"
           fill="none"
           initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 0.7 }}
+          animate={{ pathLength: 1, opacity: 0.8 }}
           transition={{ duration: 0.5, ease: 'easeOut', delay: 1.0 }}
         />
       </g>
 
-      {/* ─── Letter "K" ─── */}
+      {/* ─── Blue accent line (left edge of A triangle) ─── */}
+      <motion.path
+        d="M 42 186 L 108 30"
+        stroke="url(#blueAccent)"
+        strokeWidth="5"
+        strokeLinecap="round"
+        fill="none"
+        filter="url(#coreGlow)"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{ duration: 0.6, ease: 'easeOut', delay: 1.3 }}
+      />
+
+      {/* ─── Green bar at base of A ─── */}
+      <motion.rect
+        x="72"
+        y="162"
+        width="70"
+        height="18"
+        rx="3"
+        fill="url(#greenBar)"
+        filter="url(#coreGlow)"
+        initial={{ scaleX: 0, opacity: 0 }}
+        animate={{ scaleX: 1, opacity: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut', delay: 1.5 }}
+        style={{ transformOrigin: '72px 171px' }}
+      />
+
+      {/* ─── Letter "D" — overlapping with right side of A ─── */}
       <g filter="url(#logoGlow)">
-        {/* K — vertical stem (overlaps with A) */}
+        {/* D — vertical stem */}
         <motion.path
-          d="M 130 40 L 130 180"
+          d="M 150 30 L 150 190"
           stroke="url(#letterGrad)"
-          strokeWidth="18"
+          strokeWidth="20"
           strokeLinecap="round"
           fill="none"
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ pathLength: 1, opacity: 1 }}
           transition={{ duration: 0.7, ease: 'easeInOut', delay: 0.4 }}
         />
-        {/* K — upper arm */}
+        {/* D — curved bowl */}
         <motion.path
-          d="M 130 110 L 200 30"
+          d="M 150 30 C 150 30, 250 30, 250 110 C 250 190, 150 190, 150 190"
           stroke="url(#letterGrad)"
-          strokeWidth="16"
+          strokeWidth="20"
           strokeLinecap="round"
           fill="none"
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 0.6, ease: 'easeOut', delay: 0.9 }}
-        />
-        {/* K — lower arm */}
-        <motion.path
-          d="M 130 110 L 210 180"
-          stroke="url(#letterGrad)"
-          strokeWidth="16"
-          strokeLinecap="round"
-          fill="none"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 0.6, ease: 'easeOut', delay: 1.1 }}
+          transition={{ duration: 1.0, ease: 'easeInOut', delay: 0.8 }}
         />
       </g>
 
-      {/* ─── Terminal prompt  >_  ─── */}
-      <g filter="url(#coreGlow)">
-        {/* ">" chevron */}
-        <motion.path
-          d="M 88 140 L 108 155 L 88 170"
-          stroke="url(#termGrad)"
-          strokeWidth="7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 0.5, ease: 'easeOut', delay: 1.6 }}
-        />
-        {/* "_" underscore */}
-        <motion.path
-          d="M 112 170 L 135 170"
-          stroke="url(#termGrad)"
-          strokeWidth="6"
-          strokeLinecap="round"
-          fill="none"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: [0, 1, 1] }}
-          transition={{ duration: 0.4, ease: 'easeOut', delay: 1.9 }}
-        />
-      </g>
+      {/* ─── Inner cutout of D (the negative space) — subtle highlight ─── */}
+      <motion.path
+        d="M 160 55 C 160 55, 225 55, 225 110 C 225 165, 160 165, 160 165"
+        stroke="rgba(255,255,255,0.08)"
+        strokeWidth="8"
+        strokeLinecap="round"
+        fill="none"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{ duration: 0.8, ease: 'easeOut', delay: 1.8 }}
+      />
 
-      {/* ─── Cyan diamond ─── */}
-      <motion.g
+      {/* ─── Glow pulse on intersection point ─── */}
+      <motion.circle
+        cx="150"
+        cy="110"
+        r="6"
+        fill="rgba(52, 211, 153, 0.6)"
         filter="url(#coreGlow)"
         initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 2.0 }}
-        style={{ transformOrigin: '210px 50px' }}
-      >
-        <motion.path
-          d="M 210 30 L 230 50 L 210 70 L 190 50 Z"
-          fill="url(#diamondGrad)"
-          stroke="#22d3ee"
-          strokeWidth="1.5"
-          animate={{
-            filter: [
-              'drop-shadow(0 0 4px rgba(34,211,238,0.4))',
-              'drop-shadow(0 0 12px rgba(34,211,238,0.8))',
-              'drop-shadow(0 0 4px rgba(34,211,238,0.4))',
-            ],
-          }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        {/* Diamond highlight facet */}
-        <path
-          d="M 210 33 L 225 50 L 210 50 Z"
-          fill="rgba(255,255,255,0.25)"
-        />
-      </motion.g>
+        animate={{ 
+          scale: [0, 1.5, 1],
+          opacity: [0, 0.8, 0.4],
+        }}
+        transition={{ duration: 1, delay: 2.0, ease: 'easeOut' }}
+        style={{ transformOrigin: '150px 110px' }}
+      />
+      <motion.circle
+        cx="150"
+        cy="110"
+        r="3"
+        fill="rgba(96, 165, 250, 0.8)"
+        filter="url(#coreGlow)"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ 
+          scale: [0, 1, 1],
+          opacity: [0, 1, 0.6],
+        }}
+        transition={{ duration: 0.8, delay: 2.2, ease: 'easeOut' }}
+        style={{ transformOrigin: '150px 110px' }}
+      />
     </svg>
   );
 }
@@ -260,7 +259,7 @@ function AKLogo({ glowIntensity = 0 }: { glowIntensity?: number }) {
 const BOOT_LOGS = [
   "ACPI: Core revision 20260531",
   "PM: Registering ACPI NVS region",
-  "CPU0: AKASHI Neural Engine v2.0 @ 4.80GHz",
+  "CPU0: AKASHI DEV Neural Engine v2.0 @ 4.80GHz",
   "SMP: Bringing up secondary AI cores...",
   "x86/npu: Booted 128 nodes, 4096 processors",
   "Btrfs loaded, crc32c=crc32c-generic",
@@ -270,12 +269,12 @@ const BOOT_LOGS = [
   "Starting Network Service...",
   "IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready",
   "systemd[1]: Reached target Network.",
-  "Starting Akashi Graphics Server...",
+  "Starting Akashi DEV Graphics Server...",
   "Loading Core Web Modules...",
   "Initializing Window Manager...",
   "Mounting Virtual File System...",
-  "systemd[1]: Started Akashi OS Environment.",
-  "Welcome to AKASHI OS v2.0",
+  "systemd[1]: Started Akashi DEV Environment.",
+  "Welcome to AKASHI DEV v2.0",
 ];
 
 /* ─── Ring animation around logo ─── */
@@ -367,7 +366,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
   }, [phase, onComplete]);
 
   const textChars = 'AKASHI'.split('');
-  const osChars = 'OS'.split('');
+  const osChars = 'DEV'.split('');
 
   return (
     <AnimatePresence>
@@ -503,7 +502,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
                       transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                     />
 
-                    <AKLogo glowIntensity={glowPulse} />
+                    <ADLogo glowIntensity={glowPulse} />
                   </motion.div>
                 </div>
 
