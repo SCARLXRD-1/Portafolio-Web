@@ -119,7 +119,8 @@ export default function BrowserApp() {
             )}
             <iframe
               src={url}
-              className="w-full h-full border-none"
+              className="w-full h-full border-none bg-white"
+              style={{ colorScheme: 'light' }}
               onLoad={() => setIsLoading(false)}
               sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
               title="Browser"
