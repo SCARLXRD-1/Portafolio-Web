@@ -72,12 +72,11 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     icons: {
       icon: [
+        { url: "/logopes.svg", type: "image/svg+xml" },
         { url: "/logopes.png", type: "image/png" },
-        { url: "/favicon.png", type: "image/png" },
-        { url: "/favicon.ico", sizes: "any" },
       ],
       apple: [
-        { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+        { url: "/logopes.png", sizes: "180x180", type: "image/png" },
       ],
     },
   };
