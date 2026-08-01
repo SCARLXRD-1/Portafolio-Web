@@ -12,6 +12,7 @@ interface BlogPost {
   content: string;
   content_en?: string;
   slug: string;
+  slug_en?: string;
   is_published: boolean;
   created_at: string;
 }
@@ -29,6 +30,7 @@ export default function AdminBlogPage() {
   const [title, setTitle] = useState('');
   const [titleEn, setTitleEn] = useState('');
   const [slug, setSlug] = useState('');
+  const [slugEn, setSlugEn] = useState('');
   const [content, setContent] = useState('');
   const [contentEn, setContentEn] = useState('');
   const [isPublished, setIsPublished] = useState(true);
@@ -57,6 +59,7 @@ export default function AdminBlogPage() {
       setTitle(selectedPost.title || '');
       setTitleEn(selectedPost.title_en || '');
       setSlug(selectedPost.slug || '');
+      setSlugEn(selectedPost.slug_en || '');
       setContent(selectedPost.content || '');
       setContentEn(selectedPost.content_en || '');
       setIsPublished(selectedPost.is_published);
@@ -64,6 +67,7 @@ export default function AdminBlogPage() {
       setTitle('');
       setTitleEn('');
       setSlug('');
+      setSlugEn('');
       setContent('');
       setContentEn('');
       setIsPublished(true);
@@ -75,6 +79,7 @@ export default function AdminBlogPage() {
     setTitle('');
     setTitleEn('');
     setSlug('');
+    setSlugEn('');
     setContent('');
     setContentEn('');
     setIsPublished(true);
@@ -93,6 +98,7 @@ export default function AdminBlogPage() {
       title,
       title_en: titleEn,
       slug,
+      slug_en: slugEn,
       content,
       content_en: contentEn,
       is_published: isPublished,
@@ -271,14 +277,25 @@ export default function AdminBlogPage() {
                   className="w-full bg-[#f8f9fa] dark:bg-[#121212] border border-black/10 dark:border-white/10 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
                 />
               </div>
-              <div>
-                <label htmlFor="slug-input" className="block text-sm font-medium mb-2 text-black/70 dark:text-white/70">Slug (URL amigable)</label>
+              <div className={activeTab === 'es' ? 'block' : 'hidden'}>
+                <label htmlFor="slug-input-es" className="block text-sm font-medium mb-2 text-black/70 dark:text-white/70">Slug (URL amigable Español)</label>
                 <input 
-                  id="slug-input"
+                  id="slug-input-es"
                   type="text" 
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   placeholder="ej-como-construi-mi-os"
+                  className="w-full bg-[#f8f9fa] dark:bg-[#121212] border border-black/10 dark:border-white/10 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 font-mono text-sm"
+                />
+              </div>
+              <div className={activeTab === 'en' ? 'block' : 'hidden'}>
+                <label htmlFor="slug-input-en" className="block text-sm font-medium mb-2 text-black/70 dark:text-white/70">Slug (Friendly URL English)</label>
+                <input 
+                  id="slug-input-en"
+                  type="text" 
+                  value={slugEn}
+                  onChange={(e) => setSlugEn(e.target.value)}
+                  placeholder="ex-how-i-built-my-os"
                   className="w-full bg-[#f8f9fa] dark:bg-[#121212] border border-black/10 dark:border-white/10 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 font-mono text-sm"
                 />
               </div>

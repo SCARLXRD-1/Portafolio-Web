@@ -14,6 +14,7 @@ interface BlogPost {
   content: string;
   content_en?: string;
   slug: string;
+  slug_en?: string;
   created_at: string;
   updated_at: string;
 }
@@ -26,6 +27,7 @@ export default function NotesApp() {
 
   const getTitle = (post: BlogPost) => (locale === 'en' && post.title_en) ? post.title_en : post.title;
   const getContent = (post: BlogPost) => (locale === 'en' && post.content_en) ? post.content_en : post.content;
+  const getSlug = (post: BlogPost) => (locale === 'en' && post.slug_en) ? post.slug_en : post.slug;
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -77,7 +79,7 @@ export default function NotesApp() {
                 }`}
               >
                 <FileText size={14} className="mr-2 text-[#519aba]" />
-                <span className="truncate">{post.slug}.md</span>
+                <span className="truncate">{getSlug(post)}.md</span>
               </button>
             ))}
         </div>
@@ -91,7 +93,7 @@ export default function NotesApp() {
             <div className="flex bg-[#2d2d2d] border-b border-[#333] overflow-x-auto [&::-webkit-scrollbar]:hidden">
               <div className="flex items-center px-4 py-2 bg-[#1e1e1e] border-t-2 border-t-[#007acc] text-[#cccccc] min-w-max">
                 <FileText size={14} className="mr-2 text-[#519aba]" />
-                <span className="text-sm">{selectedPost.slug}.md</span>
+                <span className="text-sm">{getSlug(selectedPost)}.md</span>
               </div>
             </div>
 
