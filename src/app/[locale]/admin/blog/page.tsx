@@ -8,7 +8,9 @@ import { toast } from 'react-toastify';
 interface BlogPost {
   id: string;
   title: string;
+  title_en?: string;
   content: string;
+  content_en?: string;
   slug: string;
   is_published: boolean;
   created_at: string;
@@ -21,10 +23,14 @@ export default function AdminBlogPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
 
+  const [activeTab, setActiveTab] = useState<'es' | 'en'>('es');
+  
   // Form State
   const [title, setTitle] = useState('');
+  const [titleEn, setTitleEn] = useState('');
   const [slug, setSlug] = useState('');
   const [content, setContent] = useState('');
+  const [contentEn, setContentEn] = useState('');
   const [isPublished, setIsPublished] = useState(true);
 
   const fetchPosts = async () => {
@@ -48,14 +54,18 @@ export default function AdminBlogPage() {
 
   useEffect(() => {
     if (selectedPost) {
-      setTitle(selectedPost.title);
-      setSlug(selectedPost.slug);
-      setContent(selectedPost.content);
+      setTitle(selectedPost.title || '');
+      setTitleEn(selectedPost.title_en || '');
+      setSlug(selectedPost.slug || '');
+      setContent(selectedPost.content || '');
+      setContentEn(selectedPost.content_en || '');
       setIsPublished(selectedPost.is_published);
     } else {
       setTitle('');
+      setTitleEn('');
       setSlug('');
       setContent('');
+      setContentEn('');
       setIsPublished(true);
     }
   }, [selectedPost]);
@@ -63,8 +73,10 @@ export default function AdminBlogPage() {
   const handleCreateNew = () => {
     setSelectedPost(null);
     setTitle('');
+    setTitleEn('');
     setSlug('');
     setContent('');
+    setContentEn('');
     setIsPublished(true);
   };
 
@@ -79,8 +91,10 @@ export default function AdminBlogPage() {
     
     const postData = {
       title,
+      title_en: titleEn,
       slug,
       content,
+      content_en: contentEn,
       is_published: isPublished,
       updated_at: new Date().toISOString()
     };
@@ -213,15 +227,47 @@ export default function AdminBlogPage() {
           </h2>
 
           <form onSubmit={handleSave} className="flex flex-col gap-6 max-w-4xl">
+            <div className="flex space-x-2 mb-2 border-b border-black/10 dark:border-white/10 pb-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab('es')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  activeTab === 'es' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' : 'text-black/60 dark:text-white/60 hover:bg-black/5 dark:hover:bg-white/5'
+                }`}
+              >
+                Español
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('en')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  activeTab === 'en' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' : 'text-black/60 dark:text-white/60 hover:bg-black/5 dark:hover:bg-white/5'
+                }`}
+              >
+                English
+              </button>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="title-input" className="block text-sm font-medium mb-2 text-black/70 dark:text-white/70">Título</label>
+              <div className={activeTab === 'es' ? 'block' : 'hidden'}>
+                <label htmlFor="title-input-es" className="block text-sm font-medium mb-2 text-black/70 dark:text-white/70">Título (Español)</label>
                 <input 
-                  id="title-input"
+                  id="title-input-es"
                   type="text" 
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Ej: Cómo construí mi OS en React..."
+                  className="w-full bg-[#f8f9fa] dark:bg-[#121212] border border-black/10 dark:border-white/10 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div className={activeTab === 'en' ? 'block' : 'hidden'}>
+                <label htmlFor="title-input-en" className="block text-sm font-medium mb-2 text-black/70 dark:text-white/70">Title (English)</label>
+                <input 
+                  id="title-input-en"
+                  type="text" 
+                  value={titleEn}
+                  onChange={(e) => setTitleEn(e.target.value)}
+                  placeholder="Ex: How I built my React OS..."
                   className="w-full bg-[#f8f9fa] dark:bg-[#121212] border border-black/10 dark:border-white/10 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
                 />
               </div>
@@ -238,16 +284,31 @@ export default function AdminBlogPage() {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="content-input" className="block text-sm font-medium mb-2 text-black/70 dark:text-white/70 flex justify-between items-center">
-                <span>Contenido (Markdown)</span>
+            <div className={activeTab === 'es' ? 'block' : 'hidden'}>
+              <label htmlFor="content-input-es" className="block text-sm font-medium mb-2 text-black/70 dark:text-white/70 flex justify-between items-center">
+                <span>Contenido (Markdown Español)</span>
                 <span className="text-xs text-blue-500 font-normal">Soporta negritas, listas, código, etc.</span>
               </label>
               <textarea 
-                id="content-input"
+                id="content-input-es"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="# Mi nuevo artículo&#10;&#10;Escribe tu genialidad aquí usando **Markdown**..."
+                rows={15}
+                className="w-full bg-[#f8f9fa] dark:bg-[#121212] border border-black/10 dark:border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 font-mono text-sm resize-y"
+              />
+            </div>
+            
+            <div className={activeTab === 'en' ? 'block' : 'hidden'}>
+              <label htmlFor="content-input-en" className="block text-sm font-medium mb-2 text-black/70 dark:text-white/70 flex justify-between items-center">
+                <span>Content (Markdown English)</span>
+                <span className="text-xs text-blue-500 font-normal">Supports bold, lists, code, etc.</span>
+              </label>
+              <textarea 
+                id="content-input-en"
+                value={contentEn}
+                onChange={(e) => setContentEn(e.target.value)}
+                placeholder="# My new article&#10;&#10;Write your genius here using **Markdown**..."
                 rows={15}
                 className="w-full bg-[#f8f9fa] dark:bg-[#121212] border border-black/10 dark:border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 font-mono text-sm resize-y"
               />

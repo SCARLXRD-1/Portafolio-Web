@@ -5,20 +5,27 @@ import { insforge } from '@/lib/insforge';
 import { FileText, ChevronRight, Hash, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useLocale } from 'next-intl';
 
 interface BlogPost {
   id: string;
   title: string;
+  title_en?: string;
   content: string;
+  content_en?: string;
   slug: string;
   created_at: string;
   updated_at: string;
 }
 
 export default function NotesApp() {
+  const locale = useLocale();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const getTitle = (post: BlogPost) => (locale === 'en' && post.title_en) ? post.title_en : post.title;
+  const getContent = (post: BlogPost) => (locale === 'en' && post.content_en) ? post.content_en : post.content;
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -92,15 +99,22 @@ export default function NotesApp() {
             <div className="flex-1 overflow-y-auto p-8 font-sans">
               <div className="max-w-3xl mx-auto">
                 <div className="mb-8 pb-4 border-b border-[#333]">
-                  <h1 className="text-3xl font-bold text-white mb-2">{selectedPost.title}</h1>
+                  <h1 className="text-3xl font-bold text-white mb-2">{getTitle(selectedPost)}</h1>
                   <div className="text-xs text-[#888]">
                     Última actualización: {new Date(selectedPost.updated_at).toLocaleDateString()}
                   </div>
                 </div>
                 
-                <div className="prose prose-invert prose-pre:bg-[#1e1e1e] prose-pre:border prose-pre:border-[#333] prose-a:text-[#3794ff] hover:prose-a:text-[#52a6ff] prose-headings:text-white max-w-none">
+                <div className="prose prose-invert prose-blue max-w-none 
+                  prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl 
+                  prose-a:text-[#3794ff] prose-a:no-underline hover:prose-a:underline
+                  prose-code:bg-[#2d2d2d] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-[#d4d4d4]
+                  prose-pre:bg-[#1e1e1e] prose-pre:border prose-pre:border-[#333] prose-pre:text-[#d4d4d4]
+                  prose-hr:border-[#333] prose-blockquote:border-l-[#007acc] prose-blockquote:bg-[#252526] prose-blockquote:py-0.5 prose-blockquote:px-4 prose-blockquote:not-italic
+                  marker:text-[#007acc]"
+                >
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {selectedPost.content}
+                    {getContent(selectedPost)}
                   </ReactMarkdown>
                 </div>
               </div>
