@@ -5,6 +5,7 @@ import { insforge } from '@/lib/insforge';
 import { FileText, ChevronRight, Hash, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 import { useLocale } from 'next-intl';
 
 interface BlogPost {
@@ -108,14 +109,23 @@ export default function NotesApp() {
                 </div>
                 
                 <div className="prose prose-invert prose-blue max-w-none 
-                  prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl 
-                  prose-a:text-[#3794ff] prose-a:no-underline hover:prose-a:underline
-                  prose-code:bg-[#2d2d2d] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-[#d4d4d4]
-                  prose-pre:bg-[#1e1e1e] prose-pre:border prose-pre:border-[#333] prose-pre:text-[#d4d4d4]
-                  prose-hr:border-[#333] prose-blockquote:border-l-[#007acc] prose-blockquote:bg-[#252526] prose-blockquote:py-0.5 prose-blockquote:px-4 prose-blockquote:not-italic
+                  text-[15px] sm:text-base leading-relaxed tracking-wide text-[#cccccc]
+                  prose-headings:font-bold prose-headings:text-white prose-headings:tracking-tight
+                  prose-h1:text-3xl prose-h1:mb-6 prose-h1:mt-8
+                  prose-h2:text-2xl prose-h2:mb-4 prose-h2:mt-8 prose-h2:border-b prose-h2:border-[#333] prose-h2:pb-2
+                  prose-h3:text-xl prose-h3:mt-6
+                  prose-p:mb-6 prose-p:leading-8
+                  prose-a:text-[#3794ff] prose-a:no-underline hover:prose-a:underline hover:prose-a:text-[#52a6ff]
+                  prose-code:bg-[#2d2d2d] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-[#d4d4d4] prose-code:font-medium
+                  prose-pre:bg-[#1e1e1e] prose-pre:border prose-pre:border-[#333] prose-pre:text-[#d4d4d4] prose-pre:p-4 prose-pre:rounded-xl
+                  prose-hr:border-[#333] prose-hr:my-8
+                  prose-blockquote:border-l-4 prose-blockquote:border-l-[#007acc] prose-blockquote:bg-[#252526] prose-blockquote:py-2 prose-blockquote:px-6 prose-blockquote:my-6 prose-blockquote:not-italic prose-blockquote:rounded-r-lg prose-blockquote:text-[#aaaaaa]
+                  prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-6
+                  prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-6
+                  prose-li:my-2
                   marker:text-[#007acc]"
                 >
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
                     {getContent(selectedPost)}
                   </ReactMarkdown>
                 </div>
