@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, FolderKanban, Image as ImageIcon, Trash2, Edit2, X, Loader2 } from 'lucide-react';
+import { Plus, FolderKanban, Image as ImageIcon, Trash2, Edit2, X, Loader2, Star } from 'lucide-react';
 import { insforge } from '@/lib/insforge';
 import { toast } from 'react-toastify';
 
@@ -17,6 +17,7 @@ type Project = {
   image_urls: string[];
   sort_order: number;
   status: 'draft' | 'published';
+  is_featured: boolean;
 };
 
 const defaultForm: Partial<Project> = {
@@ -30,6 +31,7 @@ const defaultForm: Partial<Project> = {
   image_urls: [],
   sort_order: 0,
   status: 'published',
+  is_featured: false,
 };
 
 export default function AdminProjects() {
@@ -100,6 +102,7 @@ export default function AdminProjects() {
         image_urls: formData.image_urls || [],
         sort_order: Number(formData.sort_order) || 0,
         status: formData.status || 'published',
+        is_featured: formData.is_featured || false,
       };
 
       if (editingId) {
@@ -273,6 +276,28 @@ export default function AdminProjects() {
               </div>
             </div>
 
+            <div className="flex items-center gap-3 p-3 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, is_featured: !prev.is_featured }))}
+                className={`p-2 rounded-lg transition-all duration-200 ${
+                  formData.is_featured
+                    ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30'
+                    : 'bg-black/5 dark:bg-white/5 text-black/40 dark:text-white/40 hover:bg-black/10 dark:hover:bg-white/10'
+                }`}
+              >
+                <Star size={18} fill={formData.is_featured ? 'currentColor' : 'none'} />
+              </button>
+              <div>
+                <p className="text-sm font-medium text-black dark:text-white">
+                  {formData.is_featured ? '⭐ Proyecto Destacado' : 'Marcar como Destacado'}
+                </p>
+                <p className="text-xs text-black/50 dark:text-white/50">
+                  Los proyectos destacados aparecen en la sección "Destacados" del portafolio.
+                </p>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">Galería de Imágenes</label>
               <div className="relative w-full h-32 rounded-xl bg-black/5 dark:bg-white/5 border-2 border-dashed border-black/20 dark:border-white/20 flex flex-col items-center justify-center text-black/50 dark:text-white/50 hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
@@ -348,6 +373,11 @@ export default function AdminProjects() {
                         <span className={`px-2 py-0.5 rounded-full ${proj.status === 'published' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-orange-500/10 text-orange-600 dark:text-orange-400'}`}>
                           {proj.status === 'published' ? 'Público' : 'Borrador'}
                         </span>
+                        {proj.is_featured && (
+                          <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                            <Star size={10} fill="currentColor" /> Destacado
+                          </span>
+                        )}
                         <span>Orden: {proj.sort_order}</span>
                       </div>
                     </div>

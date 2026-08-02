@@ -35,6 +35,7 @@ export default function ProjectsApp() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const [fileSystem, setFileSystem] = useState<FileSystemItem[]>([]);
+  const [featuredIds, setFeaturedIds] = useState<Set<string>>(new Set());
   const [openFile, setOpenFile] = useState<FileSystemItem | null>(null);
 
   useEffect(() => {
@@ -105,6 +106,7 @@ export default function ProjectsApp() {
         });
         
         setFileSystem(fsItems);
+        setFeaturedIds(new Set(data.filter(p => p.is_featured).map(p => p.id)));
       }
     };
     loadProjects();
@@ -170,7 +172,10 @@ export default function ProjectsApp() {
   };
 
   const currentItems = fileSystem.filter(item => {
-    if (currentFolderId === 'starred') return false; // No favorites logic yet
+    if (currentFolderId === 'starred') {
+      // Show root-level folders (projects) that are featured
+      return item.type === 'folder' && item.parentId === null && featuredIds.has(item.id);
+    }
     if (currentFolderId === 'local_c') return false; // Local disk is empty
     return item.parentId === currentFolderId;
   });
