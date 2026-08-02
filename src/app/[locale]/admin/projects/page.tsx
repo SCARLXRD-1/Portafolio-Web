@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, FolderKanban, Image as ImageIcon, Trash2, Edit2, X, Loader2, Star } from 'lucide-react';
+import { Plus, FolderKanban, Image as ImageIcon, Trash2, Edit2, X, Loader2, Star, Lock } from 'lucide-react';
 import { insforge } from '@/lib/insforge';
 import { toast } from 'react-toastify';
 
@@ -18,6 +18,7 @@ type Project = {
   sort_order: number;
   status: 'draft' | 'published';
   is_featured: boolean;
+  is_private_repo: boolean;
 };
 
 const defaultForm: Partial<Project> = {
@@ -32,6 +33,7 @@ const defaultForm: Partial<Project> = {
   sort_order: 0,
   status: 'published',
   is_featured: false,
+  is_private_repo: false,
 };
 
 export default function AdminProjects() {
@@ -103,6 +105,7 @@ export default function AdminProjects() {
         sort_order: Number(formData.sort_order) || 0,
         status: formData.status || 'published',
         is_featured: formData.is_featured || false,
+        is_private_repo: formData.is_private_repo || false,
       };
 
       if (editingId) {
@@ -254,7 +257,26 @@ export default function AdminProjects() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">Enlace a GitHub</label>
-                <input name="github_url" value={formData.github_url} onChange={handleInputChange} type="url" className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="https://github.com/..." />
+                {formData.is_private_repo ? (
+                  <div className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-black/40 dark:text-white/40 flex items-center gap-2">
+                    <Lock size={14} />
+                    <span>Repositorio Privado</span>
+                  </div>
+                ) : (
+                  <input name="github_url" value={formData.github_url} onChange={handleInputChange} type="url" className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="https://github.com/..." />
+                )}
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, is_private_repo: !prev.is_private_repo, github_url: !prev.is_private_repo ? '' : prev.github_url }))}
+                  className={`mt-2 flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-all ${
+                    formData.is_private_repo
+                      ? 'bg-red-500/10 text-red-500 border border-red-500/20'
+                      : 'bg-black/5 dark:bg-white/5 text-black/50 dark:text-white/50 hover:bg-black/10 dark:hover:bg-white/10'
+                  }`}
+                >
+                  <Lock size={12} />
+                  {formData.is_private_repo ? 'Repo Privado ✓' : 'Marcar como privado'}
+                </button>
               </div>
               <div>
                 <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">Demo en Vivo</label>

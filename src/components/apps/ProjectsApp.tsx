@@ -77,14 +77,18 @@ export default function ProjectsApp() {
           });
           
           // 3. Create the description text (.txt)
+          const githubLabel = proj.is_private_repo 
+            ? (isEs ? '🔒 Repositorio Privado' : '🔒 Private Repository')
+            : (proj.github_url || 'N/A');
+          
           fsItems.push({
             id: folderId + '-txt',
             name: isEs ? 'Acerca de.txt' : 'About.txt',
             type: 'text',
             parentId: folderId,
             content: isEs 
-              ? `PROYECTO: ${projName}\n\nDESCRIPCIÓN:\n${projDesc}\n\nTECNOLOGÍAS:\n${proj.technologies?.join(', ') || 'N/A'}\n\nGITHUB: ${proj.github_url || 'N/A'}\nDEMO: ${proj.demo_url || 'N/A'}`
-              : `PROJECT: ${projName}\n\nDESCRIPTION:\n${projDesc}\n\nTECHNOLOGIES:\n${proj.technologies?.join(', ') || 'N/A'}\n\nGITHUB: ${proj.github_url || 'N/A'}\nDEMO: ${proj.demo_url || 'N/A'}`,
+              ? `PROYECTO: ${projName}\n\nDESCRIPCIÓN:\n${projDesc}\n\nTECNOLOGÍAS:\n${proj.technologies?.join(', ') || 'N/A'}\n\nGITHUB: ${githubLabel}\nDEMO: ${proj.demo_url || 'N/A'}`
+              : `PROJECT: ${projName}\n\nDESCRIPTION:\n${projDesc}\n\nTECHNOLOGIES:\n${proj.technologies?.join(', ') || 'N/A'}\n\nGITHUB: ${githubLabel}\nDEMO: ${proj.demo_url || 'N/A'}`,
             date: dateStr,
             size: '4 KB'
           });
