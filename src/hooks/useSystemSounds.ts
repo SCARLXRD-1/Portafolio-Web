@@ -114,5 +114,29 @@ export function useSystemSounds() {
     playTone(783.99, 'sine', 0.8, 0.05); // G5
   }, [playTone]);
 
-  return { playClick, playOpen, playClose, playError, playLogin };
+  const playStartup = useCallback(() => {
+    // Resonant startup chord
+    playTone(392.00, 'sine', 1.2, 0.06); // G4
+    playTone(523.25, 'sine', 1.2, 0.06); // C5
+    playTone(659.25, 'sine', 1.2, 0.05); // E5
+    playTone(783.99, 'sine', 1.2, 0.05); // G5
+    setTimeout(() => playTone(1046.50, 'sine', 0.8, 0.04), 100); // C6
+  }, [playTone]);
+
+  const playTrash = useCallback(() => {
+    // Synthetic crinkle/whoosh
+    playTone(300, 'sawtooth', 0.08, 0.04);
+    setTimeout(() => playTone(220, 'triangle', 0.1, 0.04), 50);
+    setTimeout(() => playTone(160, 'sine', 0.12, 0.03), 100);
+  }, [playTone]);
+
+  const playWin = useCallback(() => {
+    // Victory fanfare
+    playTone(523.25, 'sine', 0.15, 0.06);
+    setTimeout(() => playTone(659.25, 'sine', 0.15, 0.06), 120);
+    setTimeout(() => playTone(783.99, 'sine', 0.15, 0.06), 240);
+    setTimeout(() => playTone(1046.50, 'sine', 0.4, 0.08), 360);
+  }, [playTone]);
+
+  return { playClick, playOpen, playClose, playError, playLogin, playStartup, playTrash, playWin };
 }

@@ -20,7 +20,7 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
   const locale = useLocale();
   const isEs = locale === 'es';
   const t = useTranslations('Terminal');
-  const { playLogin, playClick } = useSystemSounds();
+  const { playStartup, playClick } = useSystemSounds();
   const { user, isAdmin } = useAuthStore();
   const { username } = useSettingsStore();
 
@@ -31,7 +31,7 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
   }, []);
 
   const handleUnlock = () => {
-    playLogin();
+    playStartup();
     onUnlock(); // This enters OS
   };
 

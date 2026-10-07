@@ -14,7 +14,9 @@
     "experience": "Experience",
     "settings": "Settings",
     "files": "Files",
-    "notes": "Notes"
+    "notes": "Notes",
+    "recruiter": "Recruiter Mode",
+    "resume": "Resume (CV)"
   },
   "Terminal": {
     "welcome": "Welcome to AKASHI DEV. Type 'help' to see available commands.",
@@ -50,5 +52,33 @@
     "processorValue": "AI-Powered Agent Framework (Next.js & Framer Motion)",
     "memory": "Memory RAM",
     "memoryValue": "16 GB Virtual (Web Assembly Optimized)"
+  },
+  "TopBar": {
+    "recruiterButton": "Recruiter Mode"
+  },
+  "Recruiter": {
+    "title": "Executive Summary / Fast Track",
+    "status": "Available for Hire",
+    "role": "Software Engineer & Fullstack / Mobile Developer",
+    "summary": "Developer specialized in high-performance interactive interfaces, scalable architectures, and AI integrations. Combining robust engineering with cutting-edge user experience.",
+    "topSkills": "Core Competencies",
+    "featuredProjects": "Featured Highlights",
+    "viewCv": "View Resume (PDF)",
+    "contactMe": "Send Message",
+    "copyEmail": "Copy Email",
+    "emailCopied": "Email copied to clipboard!",
+    "liveDemo": "Live Demo",
+    "sourceCode": "Code"
+  },
+  "CVViewer": {
+    "title": "Resume Viewer",
+    "language": "Resume Language",
+    "download": "Download PDF",
+    "openExternal": "Open in Tab",
+    "zoomIn": "Zoom In",
+    "zoomOut": "Zoom Out",
+    "resetZoom": "Reset Zoom",
+    "noCvTitle": "Resume Not Available",
+    "noCvDesc": "The resume PDF file has not been uploaded for this language in the database yet."
   }
 }

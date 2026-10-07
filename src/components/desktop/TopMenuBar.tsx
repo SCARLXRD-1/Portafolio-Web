@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Wifi, Battery, BatteryCharging, BatteryFull, BatteryLow, BatteryMedium, BatteryWarning, Volume2, Search, Music } from 'lucide-react';
+import { Wifi, Battery, BatteryCharging, BatteryFull, BatteryLow, BatteryMedium, BatteryWarning, Volume2, Search, Music, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useBattery } from '@/hooks/useBattery';
+import { useSystemSounds } from '@/hooks/useSystemSounds';
 
 import ThemeToggle from './ThemeToggle';
 
@@ -36,6 +38,19 @@ export default function TopMenuBar() {
   const timeString = isMounted ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
   const fullDateString = isMounted ? time.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) : '';
 
+  const tTopBar = useTranslations('TopBar');
+  const { playClick } = useSystemSounds();
+
+  const handleRecruiterClick = () => {
+    playClick();
+    const winState = useWindowStore.getState().windows['recruiter'];
+    if (winState?.isOpen) {
+      useWindowStore.getState().focusWindow('recruiter');
+    } else {
+      useWindowStore.getState().openWindow('recruiter');
+    }
+  };
+
   const handleMusicClick = () => {
     const winState = useWindowStore.getState().windows['music'];
     if (winState?.isOpen) {
@@ -47,13 +62,23 @@ export default function TopMenuBar() {
 
   return (
     <div className="absolute top-0 left-0 right-0 h-8 bg-white/40 dark:bg-black/40 backdrop-blur-xl border-b border-black/5 dark:border-white/10 z-50 flex items-center px-4 text-xs font-medium tracking-wide text-black/90 dark:text-white/90 transition-colors duration-500">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         <span className="font-bold flex items-center gap-2 cursor-default px-2">
           <span>AKASHI DEV</span>
         </span>
         <span className="hidden md:inline opacity-60 hover:opacity-100 cursor-pointer transition-opacity">Workspace</span>
         <span className="hidden md:inline opacity-60 hover:opacity-100 cursor-pointer transition-opacity">View</span>
         <span className="hidden md:inline opacity-60 hover:opacity-100 cursor-pointer transition-opacity">Help</span>
+
+        {/* Recruiter Fast Track Button */}
+        <button
+          onClick={handleRecruiterClick}
+          className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px] transition-all shadow-sm hover:scale-105 active:scale-95"
+          title="Abrir vista ejecutiva para reclutadores"
+        >
+          <Sparkles size={11} className="text-emerald-500 animate-pulse" />
+          <span>{tTopBar('recruiterButton')}</span>
+        </button>
       </div>
       
       <div className="flex-1" />

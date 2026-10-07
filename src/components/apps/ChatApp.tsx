@@ -2,12 +2,26 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocale } from 'next-intl';
-import { Send, MessageCircle, Bot, User, Loader2 } from 'lucide-react';
+import { 
+  Send, 
+  MessageCircle, 
+  Bot, 
+  User, 
+  Loader2, 
+  Sparkles, 
+  Radio, 
+  FileText, 
+  Code2, 
+  Briefcase, 
+  Mail 
+} from 'lucide-react';
 import { insforge } from '@/lib/insforge';
+import { useSystemSounds } from '@/hooks/useSystemSounds';
+import { useWindowStore } from '@/store/useWindowStore';
 
 interface ChatMessage {
   id: string;
-  sender: 'visitor' | 'admin';
+  sender: 'visitor' | 'admin' | 'ai';
   content: string;
   created_at: string;
 }
@@ -15,11 +29,16 @@ interface ChatMessage {
 export default function ChatApp() {
   const locale = useLocale();
   const isEs = locale === 'es';
+  const [mode, setMode] = useState<'ai' | 'live'>('ai');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
+  const [isAiTyping, setIsAiTyping] = useState(false);
   const [chatId, setChatId] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const { playClick, playOpen } = useSystemSounds();
+  const openWindow = useWindowStore((state) => state.openWindow);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -27,223 +46,319 @@ export default function ChatApp() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isInitializing]);
+  }, [messages, isInitializing, isAiTyping]);
 
-  // Inicializar Chat
+  // Mensaje de bienvenida inicial de Akashi AI (solo si está vacío)
   useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length > 0) return prev;
+      return [{
+        id: 'ai-welcome',
+        sender: 'ai',
+        content: isEs
+          ? '¡Hola! Soy Akashi AI 🤖, el asistente virtual de Jhonatan. Pregúntame sobre sus proyectos, stack tecnológico, experiencia laboral o cómo contactarlo.'
+          : 'Hello! I am Akashi AI 🤖, Jhonatan\'s virtual assistant. Ask me anything about his projects, tech stack, work experience, or how to reach him.',
+        created_at: new Date().toISOString(),
+      }];
+    });
+  }, [isEs]);
+
+  // Inicializar Chat con InsForge
+  useEffect(() => {
+    let isMounted = true;
+
     const initChat = async () => {
-      let currentChatId = localStorage.getItem('live_chat_id');
+      let currentChatId = typeof window !== 'undefined' ? localStorage.getItem('live_chat_id') : null;
 
       if (!currentChatId) {
-        // Crear un nuevo chat si no existe
         try {
           const { data, error } = await insforge.database
             .from('live_chats')
-            .insert([{ visitor_name: 'Anónimo' }])
+            .insert([{ visitor_name: 'Visitante Web' }])
             .select()
             .single();
 
-          if (data && !error) {
+          if (data && !error && isMounted) {
             currentChatId = data.id as string;
             if (currentChatId) {
               localStorage.setItem('live_chat_id', currentChatId);
             }
           }
-        } catch (err) {
-          console.error('Error creando chat:', err);
+        } catch {
+          // Continuar en modo local si la BD no responde
         }
       }
 
-      setChatId(currentChatId);
+      if (isMounted) setChatId(currentChatId);
 
-      if (currentChatId) {
-        // Cargar historial
-        const { data: history } = await insforge.database
-          .from('chat_messages')
-          .select('*')
-          .eq('chat_id', currentChatId)
-          .order('created_at', { ascending: true });
-
-        if (history) setMessages(history);
-
-        // Polling de respaldo (F5 interno silencioso) cada 3 segundos
-        const pollInterval = setInterval(async () => {
-          try {
-            const { data } = await insforge.database
-              .from('chat_messages')
-              .select('*')
-              .eq('chat_id', currentChatId)
-              .order('created_at', { ascending: true });
-            
-            if (data) {
-              setMessages(prev => {
-                if (prev.length !== data.length) {
-                  setTimeout(scrollToBottom, 100);
-                  return data as ChatMessage[];
-                }
-                return prev;
-              });
-            }
-          } catch (e) {}
-        }, 3000);
-
+      if (currentChatId && isMounted) {
         try {
-          // Conectar al servidor en tiempo real y suscribirse al canal
-          await insforge.realtime.connect();
-          await insforge.realtime.subscribe(`chat:${currentChatId}`);
-          
-          const handleNewMessage = (payload: any) => {
-            // Solo agregar si el remitente NO es visitor
-            if (payload.sender !== 'visitor') {
-              setMessages((prev) => prev.some(m => m.id === payload.id) ? prev : [...prev, payload as ChatMessage]);
-              scrollToBottom();
-            }
-          };
+          const { data: history } = await insforge.database
+            .from('chat_messages')
+            .select('*')
+            .eq('chat_id', currentChatId)
+            .order('created_at', { ascending: true });
 
-          insforge.realtime.on('new_message', handleNewMessage);
-
-          setIsInitializing(false);
-
-          return () => {
-            clearInterval(pollInterval);
-            try {
-              insforge.realtime.off('new_message', handleNewMessage);
-              insforge.realtime.unsubscribe(`chat:${currentChatId}`);
-            } catch (e) {}
-          };
-        } catch (rtError) {
-          console.warn('Error conectando a Realtime:', rtError);
-          setIsInitializing(false);
-          // Si Realtime falla, el polling seguirá funcionando y retornamos su limpieza
-          return () => clearInterval(pollInterval);
-        }
-      } else {
-        setIsInitializing(false);
+          if (history && history.length > 0 && isMounted) {
+            setMessages((prev) => {
+              const existingIds = new Set(prev.map(m => m.id));
+              const uniqueHistory = (history as ChatMessage[]).filter(h => !existingIds.has(h.id));
+              return [...prev, ...uniqueHistory];
+            });
+          }
+        } catch {}
       }
+
+      if (isMounted) setIsInitializing(false);
     };
 
     initChat();
+    return () => { isMounted = false; };
   }, []);
 
-  const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!inputValue.trim() || !chatId) return;
+  // Motor de respuestas contextuales de Akashi AI
+  const generateAiResponse = (query: string): string => {
+    const q = query.toLowerCase().trim();
 
-    const messageText = inputValue.trim();
-    setInputValue(''); // Optimista
+    // Proyectos
+    if (q.includes('proyecto') || q.includes('project') || q.includes('portafolio') || q.includes('portfolio') || q.includes('app')) {
+      return isEs
+        ? '🚀 Los proyectos principales de Jhonatan incluyen:\n• **AKASHI OS:** Este sistema operativo web construido con Next.js 15, TypeScript y BaaS InsForge.\n• **CMS Administrativo:** Panel de control protegido con GitHub OAuth para gestionar contenido en tiempo real.\n• **Aplicaciones Web & Móviles:** Diseños de alta fidelidad con React Native y Tailwind CSS.\n\nPuedes explorar todos los detalles abriendo la carpeta de **Proyectos** en el escritorio.'
+        : '🚀 Jhonatan\'s featured projects include:\n• **AKASHI OS:** This full web operating system built with Next.js 15, TypeScript, and InsForge BaaS.\n• **Administrative CMS:** Dashboard secured with GitHub OAuth for real-time content management.\n• **Web & Mobile Apps:** High-fidelity UI with React Native and Tailwind CSS.\n\nYou can explore all details in the **Projects** folder on the desktop.';
+    }
 
-    // Add optimistically
-    const tempMsg: ChatMessage = {
+    // Tecnologías y Habilidades
+    if (q.includes('skill') || q.includes('habilidad') || q.includes('tecnolog') || q.includes('stack') || q.includes('lenguaje') || q.includes('react') || q.includes('next')) {
+      return isEs
+        ? '⚡ **Core Tech Stack de Jhonatan:**\n• **Frontend:** Next.js 14/15, React 19, TypeScript, Tailwind CSS, Framer Motion.\n• **Backend & BaaS:** Node.js, PostgreSQL, InsForge, REST APIs, Autenticación JWT.\n• **Móvil:** React Native & Expo.\n• **Herramientas:** Git, Docker, Linux, Figma to Code.\n\nPosee un enfoque especial en rendimiento, accesibilidad y diseño de interfaces interactivas.'
+        : '⚡ **Jhonatan\'s Core Tech Stack:**\n• **Frontend:** Next.js 14/15, React 19, TypeScript, Tailwind CSS, Framer Motion.\n• **Backend & BaaS:** Node.js, PostgreSQL, InsForge, REST APIs, JWT Auth.\n• **Mobile:** React Native & Expo.\n• **Tools:** Git, Docker, Linux, Figma to Code.\n\nWith a strong focus on performance, accessibility, and interactive design.';
+    }
+
+    // CV y Currículum
+    if (q.includes('cv') || q.includes('curriculum') || q.includes('resume') || q.includes('descargar') || q.includes('download')) {
+      return isEs
+        ? '📄 Puedes visualizar y descargar el CV de Jhonatan directamente haciendo doble clic en el acceso directo **Currículum.pdf** en el escritorio, o pulsando el botón de **Modo Reclutador** en la barra superior. ¡Está disponible tanto en Español como en Inglés!'
+        : '📄 You can view and download Jhonatan\'s Resume directly by double-clicking the **Resume.pdf** desktop shortcut, or by clicking **Recruiter Mode** on the top bar. It is available in both English and Spanish!';
+    }
+
+    // Contacto y Correo
+    if (q.includes('contacto') || q.includes('contact') || q.includes('correo') || q.includes('email') || q.includes('contrat') || q.includes('hire') || q.includes('hablar')) {
+      return isEs
+        ? '✉️ Puedes contactar a Jhonatan directamente por correo a **jobathanjimenez1265@gmail.com** o abriendo la aplicación de **Contacto** en el Dock. Actualmente está disponible para contrataciones remotas y proyectos freelance.'
+        : '✉️ You can reach Jhonatan directly at **jobathanjimenez1265@gmail.com** or by opening the **Contact** app in the Dock. He is currently open to remote roles and freelance projects.';
+    }
+
+    // IA y Machine Learning
+    if (q.includes('ia') || q.includes('ai') || q.includes('machine learning') || q.includes('inteligencia')) {
+      return isEs
+        ? '🤖 Jhonatan integra activamente soluciones de Inteligencia Artificial en sus proyectos web, aprovechando gateways de LLMs (Gemini, Claude, GPT), prompts contextuales, automatización de código y flujos asistidos por agentes.'
+        : '🤖 Jhonatan actively integrates AI solutions into web projects, leveraging LLM gateways (Gemini, Claude, GPT), contextual prompting, code automation, and agentic workflows.';
+    }
+
+    // Respuesta general
+    return isEs
+      ? 'Entendido. Jhonatan es Ingeniero de Software enfocado en desarrollo Web y Móvil de alto impacto. ¿Te gustaría saber más sobre sus **proyectos**, su **stack tecnológico**, o cómo **descargar su currículum**?'
+      : 'Understood! Jhonatan is a Software Engineer focused on high-impact Web & Mobile development. Would you like to know more about his **projects**, **tech stack**, or how to **download his resume**?';
+  };
+
+  const handleSendMessage = async (textToSend?: string) => {
+    const text = (textToSend || inputValue).trim();
+    if (!text) return;
+
+    playClick();
+    setInputValue('');
+
+    const userMsg: ChatMessage = {
       id: crypto.randomUUID(),
       sender: 'visitor',
-      content: messageText,
+      content: text,
       created_at: new Date().toISOString(),
     };
-    setMessages(prev => [...prev, tempMsg]);
 
-    try {
-      await insforge.database.from('chat_messages').insert([
-        {
-          chat_id: chatId,
-          sender: 'visitor',
-          content: messageText
-        }
-      ]);
-      
-      // Update last_message_at in live_chats
-      await insforge.database
-        .from('live_chats')
-        .update({ last_message_at: new Date().toISOString() })
-        .eq('id', chatId);
+    setMessages((prev) => [...prev, userMsg]);
 
-      // Publicar evento en tiempo real para el admin
-      await insforge.realtime.publish(`chat:${chatId}`, 'new_message', tempMsg);
-      await insforge.realtime.publish('admin_chats', 'chat_updated', { id: chatId });
+    // Guardar en InsForge si está disponible
+    if (chatId) {
+      try {
+        await insforge.database.from('chat_messages').insert([
+          { chat_id: chatId, sender: 'visitor', content: text }
+        ]);
+        await insforge.database
+          .from('live_chats')
+          .update({ last_message_at: new Date().toISOString() })
+          .eq('id', chatId);
+      } catch {}
+    }
 
-    } catch (err) {
-      console.error('Error enviando mensaje:', err);
+    // Si estamos en modo AI (o por defecto), generar respuesta de Akashi AI
+    if (mode === 'ai') {
+      setIsAiTyping(true);
+      setTimeout(async () => {
+        const responseText = generateAiResponse(text);
+        const aiMsg: ChatMessage = {
+          id: crypto.randomUUID(),
+          sender: 'ai',
+          content: responseText,
+          created_at: new Date().toISOString(),
+        };
+
+        setIsAiTyping(false);
+        setMessages((prev) => [...prev, aiMsg]);
+        playOpen();
+      }, 700);
     }
   };
 
+  const quickPills = [
+    { label: isEs ? '🚀 Proyectos clave' : '🚀 Key Projects', query: isEs ? '¿Cuáles son tus proyectos destacados?' : 'What are your featured projects?' },
+    { label: isEs ? '⚡ Stack tecnológico' : '⚡ Tech Stack', query: isEs ? '¿Qué tecnologías dominas?' : 'What technologies do you use?' },
+    { label: isEs ? '📄 Ver CV' : '📄 View Resume', query: isEs ? '¿Cómo puedo ver o descargar tu CV?' : 'How can I view or download your CV?' },
+    { label: isEs ? '✉️ Contactar' : '✉️ Contact', query: isEs ? '¿Cómo puedo contactarte para trabajar?' : 'How can I contact you to work together?' },
+  ];
+
   if (isInitializing) {
     return (
-      <div className="flex items-center justify-center h-full w-full bg-[#f8f9fa] dark:bg-[#0d0d0d]">
+      <div className="flex items-center justify-center h-full w-full bg-zinc-950 text-white">
         <Loader2 className="animate-spin text-blue-500" size={32} />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#f8f9fa] dark:bg-[#0d0d0d] text-black dark:text-white relative">
-      
-      {/* Header */}
-      <header className="px-4 py-3 border-b border-black/10 dark:border-white/10 bg-white/50 dark:bg-black/20 backdrop-blur-md flex items-center gap-3 shrink-0">
-        <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
-          <Bot className="text-blue-500" size={20} />
+    <div className="flex flex-col h-full w-full bg-zinc-950 text-white relative select-none">
+      {/* Header con alternador de modo */}
+      <header className="px-4 py-2.5 border-b border-white/10 bg-zinc-900/80 backdrop-blur-md flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-md">
+            {mode === 'ai' ? <Sparkles size={16} className="text-white" /> : <Bot size={16} className="text-white" />}
+          </div>
+          <div>
+            <h2 className="font-bold text-xs sm:text-sm text-white leading-tight">
+              {mode === 'ai' ? 'Akashi AI (Asistente)' : 'Chat con Jhonatan'}
+            </h2>
+            <div className="flex items-center gap-1.5 text-[10px] text-zinc-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>{mode === 'ai' ? (isEs ? 'Respuesta inmediata' : 'Instant replies') : (isEs ? 'En vivo' : 'Live')}</span>
+            </div>
+          </div>
         </div>
-        <div>
-          <h2 className="font-semibold leading-tight">AKASHI DEV</h2>
+
+        {/* Selector AI vs Live */}
+        <div className="flex items-center bg-zinc-800/80 p-0.5 rounded-lg border border-white/5 text-[11px] font-semibold">
+          <button
+            type="button"
+            onClick={() => { playClick(); setMode('ai'); }}
+            className={`px-2 py-1 rounded-md transition-colors ${
+              mode === 'ai' ? 'bg-blue-600 text-white shadow-sm' : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            AI
+          </button>
+          <button
+            type="button"
+            onClick={() => { playClick(); setMode('live'); }}
+            className={`px-2 py-1 rounded-md transition-colors ${
+              mode === 'live' ? 'bg-blue-600 text-white shadow-sm' : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            {isEs ? 'Admin' : 'Live'}
+          </button>
         </div>
       </header>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 && (
-          <div className="h-full flex flex-col items-center justify-center text-center text-black/40 dark:text-white/40 space-y-3">
-            <MessageCircle size={48} className="opacity-20" />
-            <p className="max-w-[250px] text-sm">
-              {isEs 
-                ? '¡Hola! Escríbeme y si estoy en línea te responderé por aquí.'
-                : 'Hi! Send me a message and if I am online I will reply right here.'}
-            </p>
-          </div>
-        )}
+      {/* Sugerencias Rápidas (Pills) */}
+      <div className="flex items-center gap-1.5 px-3 py-2 bg-zinc-900/40 border-b border-white/5 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+        {quickPills.map((pill) => (
+          <button
+            key={pill.label}
+            type="button"
+            onClick={() => handleSendMessage(pill.query)}
+            className="whitespace-nowrap px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-zinc-300 hover:text-white transition-colors"
+          >
+            {pill.label}
+          </button>
+        ))}
+      </div>
 
-        {messages.map((msg, i) => {
-          const isAdmin = msg.sender === 'admin';
+      {/* Historial de Mensajes */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
+        {messages.map((msg) => {
+          const isUser = msg.sender === 'visitor';
+          const isAI = msg.sender === 'ai';
+
           return (
-            <div key={msg.id || i} className={`flex ${isAdmin ? 'justify-start' : 'justify-end'}`}>
-              <div className={`max-w-[80%] flex gap-2 ${isAdmin ? 'flex-row' : 'flex-row-reverse'}`}>
+            <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[85%] sm:max-w-[80%] flex gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
                 {/* Avatar */}
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-auto ${isAdmin ? 'bg-blue-500/20 text-blue-500' : 'bg-black/10 dark:bg-white/10'}`}>
-                  {isAdmin ? <Bot size={14} /> : <User size={14} />}
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-auto text-xs ${
+                    isUser
+                      ? 'bg-zinc-800 text-zinc-300'
+                      : isAI
+                      ? 'bg-blue-500/20 text-blue-400 border border-blue-400/30'
+                      : 'bg-emerald-500/20 text-emerald-400 border border-emerald-400/30'
+                  }`}
+                >
+                  {isUser ? <User size={13} /> : isAI ? <Sparkles size={13} /> : <Bot size={13} />}
                 </div>
-                
-                {/* Bubble */}
-                <div className={`px-4 py-2.5 rounded-2xl text-[15px] leading-relaxed shadow-sm ${
-                  isAdmin 
-                    ? 'bg-white dark:bg-[#1e1e1e] border border-black/5 dark:border-white/5 rounded-bl-sm' 
-                    : 'bg-blue-500 text-white rounded-br-sm'
-                }`}>
+
+                {/* Burbuja */}
+                <div
+                  className={`px-3.5 py-2.5 rounded-2xl text-xs sm:text-[13px] leading-relaxed shadow-md whitespace-pre-wrap ${
+                    isUser
+                      ? 'bg-blue-600 text-white rounded-br-xs'
+                      : 'bg-zinc-900/90 border border-white/10 text-zinc-200 rounded-bl-xs'
+                  }`}
+                >
                   {msg.content}
                 </div>
               </div>
             </div>
           );
         })}
+
+        {/* Indicador de escribiendo */}
+        {isAiTyping && (
+          <div className="flex justify-start">
+            <div className="flex items-center gap-2 bg-zinc-900/80 border border-white/10 px-3 py-2 rounded-2xl text-xs text-zinc-400">
+              <Sparkles size={12} className="animate-spin text-blue-400" />
+              <span>Akashi AI está escribiendo...</span>
+            </div>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="p-4 bg-white/50 dark:bg-black/20 border-t border-black/10 dark:border-white/10 shrink-0">
-        <form onSubmit={handleSendMessage} className="flex items-end gap-2 max-w-2xl mx-auto relative">
+      {/* Input de texto */}
+      <div className="p-3 bg-zinc-900/70 border-t border-white/10 shrink-0">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSendMessage();
+          }}
+          className="flex items-center gap-2 max-w-2xl mx-auto relative"
+        >
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder={isEs ? 'Escribe un mensaje...' : 'Type a message...'}
-            className="flex-1 bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 rounded-full px-5 py-3 pr-12 outline-none focus:border-blue-500/50 shadow-inner transition-colors"
+            placeholder={
+              mode === 'ai'
+                ? isEs ? 'Pregúntale algo a Akashi AI...' : 'Ask Akashi AI anything...'
+                : isEs ? 'Escribe un mensaje para Jhonatan...' : 'Type a message for Jhonatan...'
+            }
+            className="flex-1 bg-zinc-900 border border-white/10 rounded-full px-4 py-2.5 pr-11 text-xs text-white placeholder-zinc-500 outline-none focus:border-blue-500 transition-colors"
           />
-          <button 
+          <button
             type="submit"
             disabled={!inputValue.trim()}
-            className="absolute right-2 bottom-1.5 w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center disabled:opacity-50 disabled:bg-gray-400 hover:bg-blue-600 transition-colors"
+            className="absolute right-1.5 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center disabled:opacity-40 disabled:bg-zinc-800 hover:bg-blue-500 transition-colors shadow-sm"
           >
-            <Send size={18} className="ml-1" />
+            <Send size={13} className="ml-0.5" />
           </button>
         </form>
       </div>
-
     </div>
   );
 }

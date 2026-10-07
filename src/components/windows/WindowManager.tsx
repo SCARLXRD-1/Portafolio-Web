@@ -19,6 +19,8 @@ import SettingsApp from '../apps/SettingsApp';
 import MusicApp from '../apps/MusicApp';
 import FilesApp from '../apps/FilesApp';
 import NotesApp from '../apps/NotesApp';
+import RecruiterApp from '../apps/RecruiterApp';
+import CVViewerApp from '../apps/CVViewerApp';
 
 const APP_COMPONENTS: Record<AppId, React.ComponentType<any>> = {
   terminal: TerminalApp,
@@ -35,6 +37,8 @@ const APP_COMPONENTS: Record<AppId, React.ComponentType<any>> = {
   music: MusicApp,
   files: FilesApp,
   notes: NotesApp,
+  recruiter: RecruiterApp,
+  resume: CVViewerApp,
 };
 
 export default function WindowManager() {

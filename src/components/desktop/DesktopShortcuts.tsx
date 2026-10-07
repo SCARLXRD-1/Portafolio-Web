@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslations, useLocale } from 'next-intl';
 import { 
@@ -28,30 +28,28 @@ interface ShortcutItem {
   action?: () => void;
 }
 
+interface MarqueeRect {
+  startX: number;
+  startY: number;
+  currentX: number;
+  currentY: number;
+}
+
 export default function DesktopShortcuts() {
   const t = useTranslations('Desktop.shortcuts');
   const locale = useLocale();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [marquee, setMarquee] = useState<MarqueeRect | null>(null);
   const [cvUrls, setCvUrls] = useState<{ es: string; en: string }>({ es: '', en: '' });
+  
   const containerRef = useRef<HTMLDivElement>(null);
+  const isDraggingMarquee = useRef(false);
 
   const openWindow = useWindowStore((state) => state.openWindow);
   const focusWindow = useWindowStore((state) => state.focusWindow);
   const windows = useWindowStore((state) => state.windows);
   const addNotification = useNotificationStore((state) => state.addNotification);
-  const { playClick } = useSystemSounds();
-
-  useEffect(() => {
-    // Deseleccionar al hacer clic fuera de los accesos directos
-    const handleGlobalPointerDown = (e: PointerEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setSelectedId(null);
-      }
-    };
-
-    window.addEventListener('pointerdown', handleGlobalPointerDown);
-    return () => window.removeEventListener('pointerdown', handleGlobalPointerDown);
-  }, []);
+  const { playClick, playTrash } = useSystemSounds();
 
   useEffect(() => {
     const fetchCvUrls = async () => {
@@ -65,13 +63,13 @@ export default function DesktopShortcuts() {
           setCvUrls({ es: data.cv_url_es || '', en: data.cv_url_en || '' });
         }
       } catch {
-        // Fallback silencioso si no hay conexión temporal
+        // Fallback silencioso
       }
     };
     fetchCvUrls();
   }, []);
 
-  const handleOpenApp = (appId: AppId) => {
+  const handleOpenApp = useCallback((appId: AppId) => {
     playClick();
     const win = windows[appId];
     if (!win?.isOpen) {
@@ -79,35 +77,26 @@ export default function DesktopShortcuts() {
     } else {
       focusWindow(appId);
     }
-  };
+  }, [windows, openWindow, focusWindow, playClick]);
 
-  const handleOpenCv = () => {
+  const handleOpenCv = useCallback(() => {
     playClick();
-    const currentUrl = locale === 'es' ? (cvUrls.es || cvUrls.en) : (cvUrls.en || cvUrls.es);
-    if (currentUrl) {
-      addNotification({
-        title: t('cv'),
-        message: t('cvOpening'),
-        type: 'info'
-      });
-      window.open(currentUrl, '_blank', 'noopener,noreferrer');
+    const win = windows['resume'];
+    if (!win?.isOpen) {
+      openWindow('resume');
     } else {
-      addNotification({
-        title: t('cv'),
-        message: t('cvNotFound'),
-        type: 'warning'
-      });
+      focusWindow('resume');
     }
-  };
+  }, [windows, openWindow, focusWindow, playClick]);
 
-  const handleOpenTrash = () => {
-    playClick();
+  const handleOpenTrash = useCallback(() => {
+    playTrash();
     addNotification({
       title: t('trashTitle'),
       message: t('trashEmpty'),
       type: 'info'
     });
-  };
+  }, [addNotification, t, playTrash]);
 
   const shortcuts: ShortcutItem[] = [
     {
@@ -169,79 +158,180 @@ export default function DesktopShortcuts() {
     },
   ];
 
-  const handleItemClick = (item: ShortcutItem) => {
+  const handleItemClick = (e: React.MouseEvent, item: ShortcutItem) => {
+    e.stopPropagation();
     playClick();
-    setSelectedId(item.id);
 
-    // En pantallas táctiles móviles, permitir abrir con un toque directo
+    if (e.ctrlKey || e.metaKey) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(item.id)) next.delete(item.id);
+        else next.add(item.id);
+        return next;
+      });
+    } else {
+      setSelectedIds(new Set([item.id]));
+    }
+
+    // Pantallas táctiles: abrir con un toque directo
     if (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches) {
-      if (item.appId) {
-        handleOpenApp(item.appId);
-      } else if (item.action) {
-        item.action();
-      }
+      if (item.appId) handleOpenApp(item.appId);
+      else if (item.action) item.action();
     }
   };
 
   const handleItemDoubleClick = (item: ShortcutItem) => {
-    if (item.appId) {
-      handleOpenApp(item.appId);
-    } else if (item.action) {
-      item.action();
-    }
+    if (item.appId) handleOpenApp(item.appId);
+    else if (item.action) item.action();
   };
 
+  // Marquee Selection Logic en el escritorio
+  const handleBackdropPointerDown = (e: React.PointerEvent) => {
+    // Solo clic primario
+    if (e.button !== 0) return;
+    
+    // Si hace clic sobre un botón de acceso directo o widget, no iniciar marquee
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-shortcut-id]') || target.closest('[data-no-marquee]')) {
+      return;
+    }
+
+    setSelectedIds(new Set());
+    isDraggingMarquee.current = true;
+    setMarquee({
+      startX: e.clientX,
+      startY: e.clientY,
+      currentX: e.clientX,
+      currentY: e.clientY,
+    });
+  };
+
+  useEffect(() => {
+    const handlePointerMove = (e: PointerEvent) => {
+      if (!isDraggingMarquee.current) return;
+
+      setMarquee((prev) => {
+        if (!prev) return null;
+        const current = { ...prev, currentX: e.clientX, currentY: e.clientY };
+
+        // Calcular colisiones con los accesos directos
+        const minX = Math.min(current.startX, current.currentX);
+        const maxX = Math.max(current.startX, current.currentX);
+        const minY = Math.min(current.startY, current.currentY);
+        const maxY = Math.max(current.startY, current.currentY);
+
+        const items = document.querySelectorAll<HTMLElement>('[data-shortcut-id]');
+        const matched = new Set<string>();
+
+        items.forEach((el) => {
+          const rect = el.getBoundingClientRect();
+          const intersects = !(
+            rect.right < minX ||
+            rect.left > maxX ||
+            rect.bottom < minY ||
+            rect.top > maxY
+          );
+          const id = el.dataset.shortcutId;
+          if (intersects && id) {
+            matched.add(id);
+          }
+        });
+
+        setSelectedIds(matched);
+        return current;
+      });
+    };
+
+    const handlePointerUp = () => {
+      if (isDraggingMarquee.current) {
+        isDraggingMarquee.current = false;
+        setMarquee(null);
+      }
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, []);
+
   return (
-    <div
-      ref={containerRef}
-      className="absolute top-12 left-2 sm:left-6 z-0 flex flex-col flex-wrap gap-1 sm:gap-2.5 max-h-[calc(100vh-140px)] pointer-events-auto select-none"
-    >
-      {shortcuts.map((item, index) => {
-        const isSelected = selectedId === item.id;
-        return (
-          <motion.button
-            key={item.id}
-            type="button"
-            initial={{ opacity: 0, x: -16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.04, duration: 0.2 }}
-            onClick={() => handleItemClick(item)}
-            onDoubleClick={() => handleItemDoubleClick(item)}
-            aria-label={t(item.labelKey)}
-            className={`group relative flex flex-col items-center justify-center w-[74px] sm:w-[84px] py-1.5 sm:py-2 px-1 rounded-xl transition-all duration-150 text-center outline-none ${
-              isSelected
-                ? 'bg-blue-500/25 ring-1 ring-blue-400/50 backdrop-blur-sm'
-                : 'hover:bg-white/10'
-            }`}
-          >
-            {/* Contenedor del ícono */}
-            <div
-              className={`relative w-12 h-12 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center border backdrop-blur-md transition-transform duration-200 group-hover:scale-105 group-active:scale-95 ${item.iconBg}`}
-            >
-              {item.icon}
+    <>
+      {/* Capa de fondo sensible a clics para selección por arrastre */}
+      <div
+        onPointerDown={handleBackdropPointerDown}
+        className="absolute inset-0 z-0 pointer-events-auto"
+      />
 
-              {/* Badge opcional */}
-              {item.badge && (
-                <span className="absolute -top-1 -right-1 text-[9px] font-bold tracking-tight bg-rose-600 text-white px-1 py-0.2 rounded-md shadow-sm border border-rose-400/40">
-                  {item.badge}
-                </span>
-              )}
-            </div>
+      {/* Recuadro visual translúcido de selección (Marquee Box) */}
+      {marquee && (
+        <div
+          className="absolute z-10 pointer-events-none bg-blue-500/20 border border-blue-400/60 rounded-sm shadow-sm"
+          style={{
+            left: Math.min(marquee.startX, marquee.currentX),
+            top: Math.min(marquee.startY, marquee.currentY),
+            width: Math.abs(marquee.currentX - marquee.startX),
+            height: Math.abs(marquee.currentY - marquee.startY),
+          }}
+        />
+      )}
 
-            {/* Etiqueta de texto */}
-            <span
-              className={`mt-1 text-[11px] sm:text-xs font-medium leading-tight max-w-[76px] sm:max-w-[82px] line-clamp-2 transition-colors duration-150 ${
-                isSelected ? 'text-white' : 'text-white/90 group-hover:text-white'
+      {/* Columna de accesos directos */}
+      <div
+        ref={containerRef}
+        className="absolute top-12 left-2 sm:left-6 z-0 flex flex-col flex-wrap gap-1 sm:gap-2.5 max-h-[calc(100vh-140px)] pointer-events-auto select-none"
+      >
+        {shortcuts.map((item, index) => {
+          const isSelected = selectedIds.has(item.id);
+          return (
+            <motion.button
+              key={item.id}
+              type="button"
+              data-shortcut-id={item.id}
+              initial={{ opacity: 0, x: -16 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.04, duration: 0.2 }}
+              onClick={(e) => handleItemClick(e, item)}
+              onDoubleClick={() => handleItemDoubleClick(item)}
+              aria-label={t(item.labelKey)}
+              className={`group relative flex flex-col items-center justify-center w-[74px] sm:w-[84px] py-1.5 sm:py-2 px-1 rounded-xl transition-all duration-150 text-center outline-none ${
+                isSelected
+                  ? 'bg-blue-500/25 ring-1 ring-blue-400/50 backdrop-blur-sm shadow-sm'
+                  : 'hover:bg-white/10'
               }`}
-              style={{
-                textShadow: '0 1px 3px rgba(0, 0, 0, 0.9), 0 2px 6px rgba(0, 0, 0, 0.7)',
-              }}
             >
-              {t(item.labelKey)}
-            </span>
-          </motion.button>
-        );
-      })}
-    </div>
+              {/* Contenedor del ícono */}
+              <div
+                className={`relative w-12 h-12 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center border backdrop-blur-md transition-transform duration-200 group-hover:scale-105 group-active:scale-95 ${item.iconBg}`}
+              >
+                {item.icon}
+
+                {/* Badge opcional */}
+                {item.badge && (
+                  <span className="absolute -top-1 -right-1 text-[9px] font-bold tracking-tight bg-rose-600 text-white px-1 py-0.2 rounded-md shadow-sm border border-rose-400/40">
+                    {item.badge}
+                  </span>
+                )}
+              </div>
+
+              {/* Etiqueta de texto */}
+              <span
+                className={`mt-1 text-[11px] sm:text-xs font-medium leading-tight max-w-[76px] sm:max-w-[82px] line-clamp-2 transition-colors duration-150 ${
+                  isSelected ? 'text-white font-semibold' : 'text-white/90 group-hover:text-white'
+                }`}
+                style={{
+                  textShadow: '0 1px 3px rgba(0, 0, 0, 0.9), 0 2px 6px rgba(0, 0, 0, 0.7)',
+                }}
+              >
+                {t(item.labelKey)}
+              </span>
+            </motion.button>
+          );
+        })}
+      </div>
+    </>
   );
 }

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type AppId = 'terminal' | 'projects' | 'about' | 'skills' | 'contact' | 'chat' | 'experiments' | 'browser' | 'certificates' | 'experience' | 'settings' | 'music' | 'files' | 'notes';
+export type AppId = 'terminal' | 'projects' | 'about' | 'skills' | 'contact' | 'chat' | 'experiments' | 'browser' | 'certificates' | 'experience' | 'settings' | 'music' | 'files' | 'notes' | 'recruiter' | 'resume';
 
 export interface WindowState {
   id: AppId;
@@ -47,6 +47,8 @@ const defaultWindows: Record<AppId, WindowState> = {
   music: { id: 'music', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 340, height: 420 },
   files: { id: 'files', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 750, height: 500 },
   notes: { id: 'notes', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 800, height: 600 },
+  recruiter: { id: 'recruiter', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 850, height: 620 },
+  resume: { id: 'resume', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 0, width: 900, height: 650 },
 };
 
 let highestZIndex = 1;

@@ -14,7 +14,9 @@
     "experience": "Experiencia",
     "settings": "Ajustes",
     "files": "Archivos",
-    "notes": "Notas"
+    "notes": "Notas",
+    "recruiter": "Modo Reclutador",
+    "resume": "Currículum (CV)"
   },
   "Terminal": {
     "welcome": "Bienvenido a AKASHI DEV. Escribe 'help' para ver los comandos disponibles.",
@@ -50,5 +52,33 @@
     "processorValue": "AI-Powered Agent Framework (Next.js & Framer Motion)",
     "memory": "Memoria RAM",
     "memoryValue": "16 GB Virtual (Web Assembly Optimizado)"
+  },
+  "TopBar": {
+    "recruiterButton": "Modo Reclutador"
+  },
+  "Recruiter": {
+    "title": "Resumen Ejecutivo / Fast Track",
+    "status": "Disponible para Contratación",
+    "role": "Ingeniero de Software & Desarrollador Fullstack / Móvil",
+    "summary": "Desarrollador enfocado en interfaces interactivas de alto rendimiento, arquitecturas escalables y soluciones con IA. Combino ingeniería robusta con experiencia de usuario moderna.",
+    "topSkills": "Habilidades Clave",
+    "featuredProjects": "Proyectos Insignia",
+    "viewCv": "Ver Currículum (PDF)",
+    "contactMe": "Enviar Mensaje",
+    "copyEmail": "Copiar Correo",
+    "emailCopied": "¡Correo copiado al portapapeles!",
+    "liveDemo": "Ver Demo",
+    "sourceCode": "Código"
+  },
+  "CVViewer": {
+    "title": "Visor de Currículum",
+    "language": "Idioma del CV",
+    "download": "Descargar PDF",
+    "openExternal": "Abrir en Pestaña",
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar",
+    "resetZoom": "Restablecer",
+    "noCvTitle": "Currículum no disponible",
+    "noCvDesc": "Aún no se ha cargado el archivo PDF del currículum para este idioma en la base de datos."
   }
 }
