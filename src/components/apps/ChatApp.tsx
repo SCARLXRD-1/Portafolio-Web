@@ -2,26 +2,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocale } from 'next-intl';
-import { 
-  Send, 
-  MessageCircle, 
-  Bot, 
-  User, 
-  Loader2, 
-  Sparkles, 
-  Radio, 
-  FileText, 
-  Code2, 
-  Briefcase, 
-  Mail 
-} from 'lucide-react';
+import { Send, MessageCircle, User, UserCheck, RotateCcw, Loader2 } from 'lucide-react';
 import { insforge } from '@/lib/insforge';
 import { useSystemSounds } from '@/hooks/useSystemSounds';
-import { useWindowStore } from '@/store/useWindowStore';
 
 interface ChatMessage {
   id: string;
-  sender: 'visitor' | 'admin' | 'ai';
+  sender: 'visitor' | 'admin';
   content: string;
   created_at: string;
 }
@@ -29,69 +16,74 @@ interface ChatMessage {
 export default function ChatApp() {
   const locale = useLocale();
   const isEs = locale === 'es';
-  const [mode, setMode] = useState<'ai' | 'live'>('ai');
+  const { playClick, playOpen } = useSystemSounds();
+
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [isAiTyping, setIsAiTyping] = useState(false);
   const [chatId, setChatId] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isSending, setIsSending] = useState(false);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const { playClick, playOpen } = useSystemSounds();
-  const openWindow = useWindowStore((state) => state.openWindow);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = (smooth = true) => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: smooth ? 'smooth' : 'auto',
+      });
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isInitializing, isAiTyping]);
+    scrollToBottom(false);
+  }, [messages.length, isInitializing]);
 
-  // Mensaje de bienvenida inicial de Akashi AI (solo si está vacío)
-  useEffect(() => {
-    setMessages((prev) => {
-      if (prev.length > 0) return prev;
-      return [{
-        id: 'ai-welcome',
-        sender: 'ai',
-        content: isEs
-          ? '¡Hola! Soy Akashi AI 🤖, el asistente virtual de Jhonatan. Pregúntame sobre sus proyectos, stack tecnológico, experiencia laboral o cómo contactarlo.'
-          : 'Hello! I am Akashi AI 🤖, Jhonatan\'s virtual assistant. Ask me anything about his projects, tech stack, work experience, or how to reach him.',
-        created_at: new Date().toISOString(),
-      }];
-    });
-  }, [isEs]);
+  const createNewSession = async () => {
+    try {
+      const { data, error } = await insforge.database
+        .from('live_chats')
+        .insert([{ visitor_name: 'Visitante' }])
+        .select()
+        .single();
 
-  // Inicializar Chat con InsForge
+      if (data && !error) {
+        const newId = data.id as string;
+        localStorage.setItem('live_chat_id', newId);
+        setChatId(newId);
+        setMessages([]);
+        return newId;
+      }
+    } catch (err) {
+      console.error('Error al inicializar sesión de chat:', err);
+    }
+    return null;
+  };
+
+  const handleResetChat = async () => {
+    playClick();
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('live_chat_id');
+    }
+    setIsInitializing(true);
+    await createNewSession();
+    setIsInitializing(false);
+  };
+
   useEffect(() => {
-    let isMounted = true;
+    let pollInterval: NodeJS.Timeout | null = null;
+    let isSubscribed = true;
 
     const initChat = async () => {
       let currentChatId = typeof window !== 'undefined' ? localStorage.getItem('live_chat_id') : null;
 
       if (!currentChatId) {
-        try {
-          const { data, error } = await insforge.database
-            .from('live_chats')
-            .insert([{ visitor_name: 'Visitante Web' }])
-            .select()
-            .single();
-
-          if (data && !error && isMounted) {
-            currentChatId = data.id as string;
-            if (currentChatId) {
-              localStorage.setItem('live_chat_id', currentChatId);
-            }
-          }
-        } catch {
-          // Continuar en modo local si la BD no responde
-        }
+        currentChatId = await createNewSession();
+      } else {
+        setChatId(currentChatId);
       }
 
-      if (isMounted) setChatId(currentChatId);
-
-      if (currentChatId && isMounted) {
+      if (currentChatId && isSubscribed) {
+        // Cargar historial
         try {
           const { data: history } = await insforge.database
             .from('chat_messages')
@@ -99,260 +91,260 @@ export default function ChatApp() {
             .eq('chat_id', currentChatId)
             .order('created_at', { ascending: true });
 
-          if (history && history.length > 0 && isMounted) {
-            setMessages((prev) => {
-              const existingIds = new Set(prev.map(m => m.id));
-              const uniqueHistory = (history as ChatMessage[]).filter(h => !existingIds.has(h.id));
-              return [...prev, ...uniqueHistory];
-            });
+          if (history && isSubscribed) {
+            setMessages(history as ChatMessage[]);
           }
+        } catch {}
+
+        // Polling de respaldo periódico
+        pollInterval = setInterval(async () => {
+          try {
+            const { data } = await insforge.database
+              .from('chat_messages')
+              .select('*')
+              .eq('chat_id', currentChatId)
+              .order('created_at', { ascending: true });
+
+            if (data && isSubscribed) {
+              setMessages((prev) => {
+                if (prev.length !== data.length) {
+                  return data as ChatMessage[];
+                }
+                return prev;
+              });
+            }
+          } catch {}
+        }, 3500);
+
+        // Suscripción Realtime para mensajes entrantes del admin
+        try {
+          await insforge.realtime.connect();
+          await insforge.realtime.subscribe(`chat:${currentChatId}`);
+
+          const handleIncoming = (payload: any) => {
+            if (payload && payload.sender === 'admin' && isSubscribed) {
+              setMessages((prev) => {
+                if (prev.some((m) => m.id === payload.id)) return prev;
+                playOpen();
+                return [...prev, payload as ChatMessage];
+              });
+            }
+          };
+
+          insforge.realtime.on('new_message', handleIncoming);
         } catch {}
       }
 
-      if (isMounted) setIsInitializing(false);
+      if (isSubscribed) {
+        setIsInitializing(false);
+      }
     };
 
     initChat();
-    return () => { isMounted = false; };
+
+    return () => {
+      isSubscribed = false;
+      if (pollInterval) clearInterval(pollInterval);
+    };
   }, []);
 
-  // Motor de respuestas contextuales de Akashi AI
-  const generateAiResponse = (query: string): string => {
-    const q = query.toLowerCase().trim();
-
-    // Proyectos
-    if (q.includes('proyecto') || q.includes('project') || q.includes('portafolio') || q.includes('portfolio') || q.includes('app')) {
-      return isEs
-        ? '🚀 Los proyectos principales de Jhonatan incluyen:\n• **AKASHI OS:** Este sistema operativo web construido con Next.js 15, TypeScript y BaaS InsForge.\n• **CMS Administrativo:** Panel de control protegido con GitHub OAuth para gestionar contenido en tiempo real.\n• **Aplicaciones Web & Móviles:** Diseños de alta fidelidad con React Native y Tailwind CSS.\n\nPuedes explorar todos los detalles abriendo la carpeta de **Proyectos** en el escritorio.'
-        : '🚀 Jhonatan\'s featured projects include:\n• **AKASHI OS:** This full web operating system built with Next.js 15, TypeScript, and InsForge BaaS.\n• **Administrative CMS:** Dashboard secured with GitHub OAuth for real-time content management.\n• **Web & Mobile Apps:** High-fidelity UI with React Native and Tailwind CSS.\n\nYou can explore all details in the **Projects** folder on the desktop.';
-    }
-
-    // Tecnologías y Habilidades
-    if (q.includes('skill') || q.includes('habilidad') || q.includes('tecnolog') || q.includes('stack') || q.includes('lenguaje') || q.includes('react') || q.includes('next')) {
-      return isEs
-        ? '⚡ **Core Tech Stack de Jhonatan:**\n• **Frontend:** Next.js 14/15, React 19, TypeScript, Tailwind CSS, Framer Motion.\n• **Backend & BaaS:** Node.js, PostgreSQL, InsForge, REST APIs, Autenticación JWT.\n• **Móvil:** React Native & Expo.\n• **Herramientas:** Git, Docker, Linux, Figma to Code.\n\nPosee un enfoque especial en rendimiento, accesibilidad y diseño de interfaces interactivas.'
-        : '⚡ **Jhonatan\'s Core Tech Stack:**\n• **Frontend:** Next.js 14/15, React 19, TypeScript, Tailwind CSS, Framer Motion.\n• **Backend & BaaS:** Node.js, PostgreSQL, InsForge, REST APIs, JWT Auth.\n• **Mobile:** React Native & Expo.\n• **Tools:** Git, Docker, Linux, Figma to Code.\n\nWith a strong focus on performance, accessibility, and interactive design.';
-    }
-
-    // CV y Currículum
-    if (q.includes('cv') || q.includes('curriculum') || q.includes('resume') || q.includes('descargar') || q.includes('download')) {
-      return isEs
-        ? '📄 Puedes visualizar y descargar el CV de Jhonatan directamente haciendo doble clic en el acceso directo **Currículum.pdf** en el escritorio, o pulsando el botón de **Modo Reclutador** en la barra superior. ¡Está disponible tanto en Español como en Inglés!'
-        : '📄 You can view and download Jhonatan\'s Resume directly by double-clicking the **Resume.pdf** desktop shortcut, or by clicking **Recruiter Mode** on the top bar. It is available in both English and Spanish!';
-    }
-
-    // Contacto y Correo
-    if (q.includes('contacto') || q.includes('contact') || q.includes('correo') || q.includes('email') || q.includes('contrat') || q.includes('hire') || q.includes('hablar')) {
-      return isEs
-        ? '✉️ Puedes contactar a Jhonatan directamente por correo a **jobathanjimenez1265@gmail.com** o abriendo la aplicación de **Contacto** en el Dock. Actualmente está disponible para contrataciones remotas y proyectos freelance.'
-        : '✉️ You can reach Jhonatan directly at **jobathanjimenez1265@gmail.com** or by opening the **Contact** app in the Dock. He is currently open to remote roles and freelance projects.';
-    }
-
-    // IA y Machine Learning
-    if (q.includes('ia') || q.includes('ai') || q.includes('machine learning') || q.includes('inteligencia')) {
-      return isEs
-        ? '🤖 Jhonatan integra activamente soluciones de Inteligencia Artificial en sus proyectos web, aprovechando gateways de LLMs (Gemini, Claude, GPT), prompts contextuales, automatización de código y flujos asistidos por agentes.'
-        : '🤖 Jhonatan actively integrates AI solutions into web projects, leveraging LLM gateways (Gemini, Claude, GPT), contextual prompting, code automation, and agentic workflows.';
-    }
-
-    // Respuesta general
-    return isEs
-      ? 'Entendido. Jhonatan es Ingeniero de Software enfocado en desarrollo Web y Móvil de alto impacto. ¿Te gustaría saber más sobre sus **proyectos**, su **stack tecnológico**, o cómo **descargar su currículum**?'
-      : 'Understood! Jhonatan is a Software Engineer focused on high-impact Web & Mobile development. Would you like to know more about his **projects**, **tech stack**, or how to **download his resume**?';
-  };
-
-  const handleSendMessage = async (textToSend?: string) => {
-    const text = (textToSend || inputValue).trim();
-    if (!text) return;
+  const handleSendMessage = async (e?: React.FormEvent<HTMLFormElement>) => {
+    if (e) e.preventDefault();
+    const text = inputValue.trim();
+    if (!text || !chatId || isSending) return;
 
     playClick();
+    setIsSending(true);
     setInputValue('');
 
-    const userMsg: ChatMessage = {
+    const tempMsg: ChatMessage = {
       id: crypto.randomUUID(),
       sender: 'visitor',
       content: text,
       created_at: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    setMessages((prev) => [...prev, tempMsg]);
 
-    // Guardar en InsForge si está disponible
-    if (chatId) {
-      try {
-        await insforge.database.from('chat_messages').insert([
-          { chat_id: chatId, sender: 'visitor', content: text }
-        ]);
-        await insforge.database
-          .from('live_chats')
-          .update({ last_message_at: new Date().toISOString() })
-          .eq('id', chatId);
-      } catch {}
-    }
+    try {
+      await insforge.database.from('chat_messages').insert([
+        {
+          chat_id: chatId,
+          sender: 'visitor',
+          content: text,
+        },
+      ]);
 
-    // Si estamos en modo AI (o por defecto), generar respuesta de Akashi AI
-    if (mode === 'ai') {
-      setIsAiTyping(true);
-      setTimeout(async () => {
-        const responseText = generateAiResponse(text);
-        const aiMsg: ChatMessage = {
-          id: crypto.randomUUID(),
-          sender: 'ai',
-          content: responseText,
-          created_at: new Date().toISOString(),
-        };
+      await insforge.database
+        .from('live_chats')
+        .update({ last_message_at: new Date().toISOString() })
+        .eq('id', chatId);
 
-        setIsAiTyping(false);
-        setMessages((prev) => [...prev, aiMsg]);
-        playOpen();
-      }, 700);
+      await insforge.realtime.publish(`chat:${chatId}`, 'new_message', tempMsg);
+      await insforge.realtime.publish('admin_chats', 'chat_updated', { id: chatId });
+    } catch (err) {
+      console.error('Error enviando mensaje:', err);
+    } finally {
+      setIsSending(false);
     }
   };
 
-  const quickPills = [
-    { label: isEs ? '🚀 Proyectos clave' : '🚀 Key Projects', query: isEs ? '¿Cuáles son tus proyectos destacados?' : 'What are your featured projects?' },
-    { label: isEs ? '⚡ Stack tecnológico' : '⚡ Tech Stack', query: isEs ? '¿Qué tecnologías dominas?' : 'What technologies do you use?' },
-    { label: isEs ? '📄 Ver CV' : '📄 View Resume', query: isEs ? '¿Cómo puedo ver o descargar tu CV?' : 'How can I view or download your CV?' },
-    { label: isEs ? '✉️ Contactar' : '✉️ Contact', query: isEs ? '¿Cómo puedo contactarte para trabajar?' : 'How can I contact you to work together?' },
+  const starterChips = [
+    isEs ? '¿Qué disponibilidad tienes para nuevos proyectos?' : 'What is your current availability for new projects?',
+    isEs ? 'Me gustaría agendar una llamada contigo.' : 'I would like to schedule a call with you.',
+    isEs ? '¿Qué stack recomiendas para una app web moderna?' : 'What stack do you recommend for a modern web app?',
   ];
+
+  const formatTime = (isoString: string) => {
+    try {
+      const date = new Date(isoString);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return '';
+    }
+  };
 
   if (isInitializing) {
     return (
-      <div className="flex items-center justify-center h-full w-full bg-zinc-950 text-white">
-        <Loader2 className="animate-spin text-blue-500" size={32} />
+      <div className="flex flex-col items-center justify-center h-full w-full bg-zinc-950 text-zinc-400 gap-3">
+        <Loader2 className="animate-spin text-blue-500" size={28} />
+        <span className="text-xs">{isEs ? 'Conectando con el chat...' : 'Connecting to chat...'}</span>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col h-full w-full bg-zinc-950 text-white relative select-none">
-      {/* Header con alternador de modo */}
-      <header className="px-4 py-2.5 border-b border-white/10 bg-zinc-900/80 backdrop-blur-md flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-md">
-            {mode === 'ai' ? <Sparkles size={16} className="text-white" /> : <Bot size={16} className="text-white" />}
+      {/* Header */}
+      <header className="px-4 py-3 border-b border-white/10 bg-zinc-900/80 backdrop-blur-md flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div className="w-9 h-9 rounded-full overflow-hidden border border-white/20 shadow-inner bg-zinc-800 shrink-0">
+              <img
+                src="/PERFIL.png"
+                alt="Jhonatan"
+                className="w-full h-full object-cover"
+                style={{ objectPosition: 'center 42%' }}
+              />
+            </div>
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-zinc-950" />
           </div>
           <div>
-            <h2 className="font-bold text-xs sm:text-sm text-white leading-tight">
-              {mode === 'ai' ? 'Akashi AI (Asistente)' : 'Chat con Jhonatan'}
-            </h2>
-            <div className="flex items-center gap-1.5 text-[10px] text-zinc-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>{mode === 'ai' ? (isEs ? 'Respuesta inmediata' : 'Instant replies') : (isEs ? 'En vivo' : 'Live')}</span>
+            <div className="flex items-center gap-1.5">
+              <h2 className="font-semibold text-sm leading-tight text-white">Jhonatan</h2>
+              <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-sm bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                Admin
+              </span>
+            </div>
+            <div className="text-[11px] text-zinc-400">
+              {isEs ? 'Mensaje directo · En vivo' : 'Direct message · Live'}
             </div>
           </div>
         </div>
 
-        {/* Selector AI vs Live */}
-        <div className="flex items-center bg-zinc-800/80 p-0.5 rounded-lg border border-white/5 text-[11px] font-semibold">
-          <button
-            type="button"
-            onClick={() => { playClick(); setMode('ai'); }}
-            className={`px-2 py-1 rounded-md transition-colors ${
-              mode === 'ai' ? 'bg-blue-600 text-white shadow-sm' : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            AI
-          </button>
-          <button
-            type="button"
-            onClick={() => { playClick(); setMode('live'); }}
-            className={`px-2 py-1 rounded-md transition-colors ${
-              mode === 'live' ? 'bg-blue-600 text-white shadow-sm' : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            {isEs ? 'Admin' : 'Live'}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleResetChat}
+          title={isEs ? 'Iniciar nueva conversación' : 'Start new conversation'}
+          className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+        >
+          <RotateCcw size={15} />
+        </button>
       </header>
 
-      {/* Sugerencias Rápidas (Pills) */}
-      <div className="flex items-center gap-1.5 px-3 py-2 bg-zinc-900/40 border-b border-white/5 overflow-x-auto [&::-webkit-scrollbar]:hidden">
-        {quickPills.map((pill) => (
-          <button
-            key={pill.label}
-            type="button"
-            onClick={() => handleSendMessage(pill.query)}
-            className="whitespace-nowrap px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-zinc-300 hover:text-white transition-colors"
-          >
-            {pill.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Historial de Mensajes */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
-        {messages.map((msg) => {
-          const isUser = msg.sender === 'visitor';
-          const isAI = msg.sender === 'ai';
-
-          return (
-            <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] sm:max-w-[80%] flex gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-                {/* Avatar */}
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-auto text-xs ${
-                    isUser
-                      ? 'bg-zinc-800 text-zinc-300'
-                      : isAI
-                      ? 'bg-blue-500/20 text-blue-400 border border-blue-400/30'
-                      : 'bg-emerald-500/20 text-emerald-400 border border-emerald-400/30'
-                  }`}
-                >
-                  {isUser ? <User size={13} /> : isAI ? <Sparkles size={13} /> : <Bot size={13} />}
-                </div>
-
-                {/* Burbuja */}
-                <div
-                  className={`px-3.5 py-2.5 rounded-2xl text-xs sm:text-[13px] leading-relaxed shadow-md whitespace-pre-wrap ${
-                    isUser
-                      ? 'bg-blue-600 text-white rounded-br-xs'
-                      : 'bg-zinc-900/90 border border-white/10 text-zinc-200 rounded-bl-xs'
-                  }`}
-                >
-                  {msg.content}
-                </div>
-              </div>
+      {/* Messages View */}
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-center text-zinc-400 space-y-4 px-4 my-auto">
+            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center text-blue-400 shadow-lg">
+              <MessageCircle size={24} />
             </div>
-          );
-        })}
+            <div className="space-y-1">
+              <p className="font-medium text-sm text-zinc-200">
+                {isEs ? 'Mensaje directo con Jhonatan' : 'Direct message with Jhonatan'}
+              </p>
+              <p className="text-xs text-zinc-400 max-w-xs leading-relaxed">
+                {isEs
+                  ? 'Escribe tu consulta o propuesta. No hay respuestas automáticas de IA: te responderé directamente.'
+                  : 'Leave your inquiry or proposal. No automated AI bots: I will reply directly.'}
+              </p>
+            </div>
 
-        {/* Indicador de escribiendo */}
-        {isAiTyping && (
-          <div className="flex justify-start">
-            <div className="flex items-center gap-2 bg-zinc-900/80 border border-white/10 px-3 py-2 rounded-2xl text-xs text-zinc-400">
-              <Sparkles size={12} className="animate-spin text-blue-400" />
-              <span>Akashi AI está escribiendo...</span>
+            {/* Quick Starters */}
+            <div className="w-full max-w-sm pt-2 flex flex-col gap-1.5">
+              {starterChips.map((chip, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    setInputValue(chip);
+                  }}
+                  className="w-full text-left text-xs px-3 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800/80 border border-white/5 hover:border-blue-500/30 text-zinc-300 hover:text-white transition-all duration-150"
+                >
+                  💬 {chip}
+                </button>
+              ))}
             </div>
           </div>
-        )}
+        ) : (
+          messages.map((msg, i) => {
+            const isAdmin = msg.sender === 'admin';
+            return (
+              <div key={msg.id || i} className={`flex ${isAdmin ? 'justify-start' : 'justify-end'}`}>
+                <div className={`max-w-[85%] sm:max-w-[78%] flex gap-2 ${isAdmin ? 'flex-row' : 'flex-row-reverse'}`}>
+                  {/* Avatar */}
+                  <div
+                    className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-auto text-xs ${
+                      isAdmin
+                        ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                        : 'bg-zinc-800 text-zinc-300 border border-white/5'
+                    }`}
+                  >
+                    {isAdmin ? <UserCheck size={13} /> : <User size={13} />}
+                  </div>
 
-        <div ref={messagesEndRef} />
+                  {/* Bubble */}
+                  <div className="flex flex-col gap-1">
+                    <div
+                      className={`px-3.5 py-2.5 rounded-2xl text-[13px] leading-relaxed shadow-sm break-words ${
+                        isAdmin
+                          ? 'bg-zinc-900 text-zinc-100 border border-white/10 rounded-bl-xs'
+                          : 'bg-blue-600 text-white rounded-br-xs'
+                      }`}
+                    >
+                      {msg.content}
+                    </div>
+                    {msg.created_at && (
+                      <span
+                        className={`text-[10px] text-zinc-500 px-1 ${
+                          isAdmin ? 'text-left' : 'text-right'
+                        }`}
+                      >
+                        {formatTime(msg.created_at)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
-      {/* Input de texto */}
-      <div className="p-3 bg-zinc-900/70 border-t border-white/10 shrink-0">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSendMessage();
-          }}
-          className="flex items-center gap-2 max-w-2xl mx-auto relative"
-        >
+      {/* Input bar */}
+      <div className="p-3 bg-zinc-900/80 border-t border-white/10 shrink-0">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2 max-w-2xl mx-auto relative">
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder={
-              mode === 'ai'
-                ? isEs ? 'Pregúntale algo a Akashi AI...' : 'Ask Akashi AI anything...'
-                : isEs ? 'Escribe un mensaje para Jhonatan...' : 'Type a message for Jhonatan...'
-            }
-            className="flex-1 bg-zinc-900 border border-white/10 rounded-full px-4 py-2.5 pr-11 text-xs text-white placeholder-zinc-500 outline-none focus:border-blue-500 transition-colors"
+            placeholder={isEs ? 'Escribe tu mensaje para Jhonatan...' : 'Type your message for Jhonatan...'}
+            className="flex-1 bg-zinc-950 border border-white/10 rounded-full px-4 py-2.5 pr-11 text-xs text-white placeholder-zinc-500 outline-none focus:border-blue-500/50 transition-colors"
           />
           <button
             type="submit"
-            disabled={!inputValue.trim()}
+            disabled={!inputValue.trim() || isSending}
             className="absolute right-1.5 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center disabled:opacity-40 disabled:bg-zinc-800 hover:bg-blue-500 transition-colors shadow-sm"
           >
             <Send size={13} className="ml-0.5" />
@@ -362,3 +354,4 @@ export default function ChatApp() {
     </div>
   );
 }
+

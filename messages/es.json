@@ -59,16 +59,17 @@
   "Recruiter": {
     "title": "Resumen Ejecutivo / Fast Track",
     "status": "Disponible para Contratación",
-    "role": "Ingeniero de Software & Desarrollador Fullstack / Móvil",
-    "summary": "Desarrollador enfocado en interfaces interactivas de alto rendimiento, arquitecturas escalables y soluciones con IA. Combino ingeniería robusta con experiencia de usuario moderna.",
+    "role": "Desarrollador de Software Junior | Flutter Developer | Full Stack Developer",
+    "summary": "Desarrollador de Software con experiencia en aplicaciones web, móviles y multiplataforma orientadas a automatización, SaaS y gestión empresarial, integrando interfaces modernas con Flutter, Dart, Astro, Python y bases de datos relacionales.",
     "topSkills": "Habilidades Clave",
-    "featuredProjects": "Proyectos Insignia",
-    "viewCv": "Ver Currículum (PDF)",
+    "featuredProjects": "Proyectos Destacados",
+    "viewCv": "Ver CV (PDF)",
     "contactMe": "Enviar Mensaje",
     "copyEmail": "Copiar Correo",
-    "emailCopied": "¡Correo copiado al portapapeles!",
+    "emailCopied": "¡Correo copiado!",
     "liveDemo": "Ver Demo",
-    "sourceCode": "Código"
+    "sourceCode": "Código",
+    "privateRepo": "Privado"
   },
   "CVViewer": {
     "title": "Visor de Currículum",

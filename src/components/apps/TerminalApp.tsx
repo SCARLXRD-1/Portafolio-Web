@@ -18,12 +18,17 @@ export default function TerminalApp() {
   const [input, setInput] = useState('');
   const [logs, setLogs] = useState<CommandLog[]>([]);
   const [cvUrls, setCvUrls] = useState<{es: string, en: string}>({es: '', en: ''});
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const terminalScrollRef = useRef<HTMLDivElement>(null);
   const openWindow = useWindowStore((state) => state.openWindow);
   const setTheme = useThemeStore((state) => state.setTheme);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (terminalScrollRef.current) {
+      terminalScrollRef.current.scrollTo({
+        top: terminalScrollRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
   }, [logs]);
 
   useEffect(() => {
@@ -169,7 +174,7 @@ export default function TerminalApp() {
 
   return (
     <div className="flex flex-col h-full w-full bg-black/80 font-mono text-sm p-4 overflow-hidden rounded-b-xl border-t border-white/5">
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent pr-2">
+      <div ref={terminalScrollRef} className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent pr-2">
         {/* Welcome Message */}
         <div className="mb-4 text-emerald-400/90 font-medium tracking-wide">
           <p>{t('welcome')}</p>
@@ -188,7 +193,6 @@ export default function TerminalApp() {
             </div>
           ))}
         </div>
-        <div ref={bottomRef} />
       </div>
 
       {/* Input Line */}

@@ -64,8 +64,13 @@ export default function DesktopWidgets() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="relative">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center font-bold text-sm shadow-md">
-                JD
+              <div className="w-9 h-9 rounded-xl overflow-hidden border border-emerald-500/40 shadow-md bg-zinc-800 shrink-0">
+                <img
+                  src="/PERFIL.png"
+                  alt="Jhonatan Jimenez"
+                  className="w-full h-full object-cover"
+                  style={{ objectPosition: 'center 42%' }}
+                />
               </div>
               <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-zinc-900 animate-pulse" />
             </div>
@@ -101,8 +106,8 @@ export default function DesktopWidgets() {
               <Activity size={12} className="text-emerald-400" />
               <span>Status</span>
             </span>
-            <span className="text-emerald-400 text-[10px] font-medium truncate max-w-[120px]">
-              Fullstack & AI Dev
+            <span className="text-emerald-400 text-[10px] font-medium truncate max-w-[130px]">
+              Flutter & Fullstack Dev
             </span>
           </div>
         </div>
@@ -140,7 +145,7 @@ export default function DesktopWidgets() {
             {isEs ? 'Stack Predilecto' : 'Core Stack'}
           </span>
           <div className="flex flex-wrap gap-1">
-            {['Next.js 15', 'TypeScript', 'React 19', 'PostgreSQL', 'Tailwind'].map((tech) => (
+            {['Flutter', 'Dart', 'Astro', 'Next.js', 'PostgreSQL', 'Supabase'].map((tech) => (
               <span
                 key={tech}
                 className="text-[10px] px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-zinc-200 font-mono"

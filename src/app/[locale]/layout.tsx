@@ -101,9 +101,9 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className="dark">
+    <html lang={locale} className="dark h-full w-full overflow-hidden">
       <body
-        className={`${playfair.variable} ${outfit.variable} font-sans antialiased bg-white dark:bg-[#0a0a0a] text-black dark:text-white overflow-hidden transition-colors duration-500 h-full w-full m-0 p-0`}
+        className={`${playfair.variable} ${outfit.variable} font-sans antialiased bg-white dark:bg-[#0a0a0a] text-black dark:text-white overflow-hidden transition-colors duration-500 h-full w-full m-0 p-0 fixed inset-0`}
         suppressHydrationWarning
       >
         <ThemeProvider>

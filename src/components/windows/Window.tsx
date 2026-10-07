@@ -142,7 +142,13 @@ export default function Window({ id, children }: WindowProps) {
         }
       }}
       onPointerDownCapture={() => focusWindow(id)}
-      initial={{ scale: 0.8, opacity: 0, y: 20, top: '10%', left: '20%' }}
+      initial={{ 
+        scale: 0.8, 
+        opacity: 0, 
+        y: 20, 
+        top: id === 'chat' ? 64 : '10%', 
+        left: id === 'chat' ? 'calc(50% - 220px)' : '20%' 
+      }}
       animate={winState.isMinimized ? {
         scale: 0.1,
         opacity: 0,
@@ -160,8 +166,12 @@ export default function Window({ id, children }: WindowProps) {
         height: isMaximized ? 'calc(100% - 32px)' : (snapState !== 'none' ? (snapState.includes('top') || snapState.includes('bottom') ? 'calc(50% - 16px)' : 'calc(100% - 32px)') : size.height),
         x: isMaximized ? 0 : undefined,
         y: isMaximized ? 0 : undefined,
-        top: isMaximized || snapState === 'left' || snapState === 'right' || snapState.includes('top') ? 32 : (snapState.includes('bottom') ? '50%' : '10%'),
-        left: isMaximized || snapState === 'left' || snapState.includes('left') ? 0 : (snapState === 'right' || snapState.includes('right') ? '50%' : '20%'),
+        top: isMaximized || snapState === 'left' || snapState === 'right' || snapState.includes('top') 
+          ? 32 
+          : (snapState.includes('bottom') ? '50%' : (id === 'chat' ? 64 : '10%')),
+        left: isMaximized || snapState === 'left' || snapState.includes('left') 
+          ? 0 
+          : (snapState === 'right' || snapState.includes('right') ? '50%' : (id === 'chat' ? 'calc(50% - 220px)' : '20%')),
       }}
       whileDrag={{ scale: 1.01, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
       transition={

@@ -59,16 +59,17 @@
   "Recruiter": {
     "title": "Executive Summary / Fast Track",
     "status": "Available for Hire",
-    "role": "Software Engineer & Fullstack / Mobile Developer",
-    "summary": "Developer specialized in high-performance interactive interfaces, scalable architectures, and AI integrations. Combining robust engineering with cutting-edge user experience.",
+    "role": "Junior Software Developer | Flutter Developer | Full Stack Developer",
+    "summary": "Software Developer experienced in web, mobile, and cross-platform applications focused on automation, SaaS, and business management, integrating modern interfaces with Flutter, Dart, Astro, Python, and relational databases.",
     "topSkills": "Core Competencies",
-    "featuredProjects": "Featured Highlights",
-    "viewCv": "View Resume (PDF)",
+    "featuredProjects": "Featured Projects",
+    "viewCv": "View CV (PDF)",
     "contactMe": "Send Message",
     "copyEmail": "Copy Email",
-    "emailCopied": "Email copied to clipboard!",
+    "emailCopied": "Email copied!",
     "liveDemo": "Live Demo",
-    "sourceCode": "Code"
+    "sourceCode": "Code",
+    "privateRepo": "Private"
   },
   "CVViewer": {
     "title": "Resume Viewer",
