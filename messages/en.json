@@ -23,7 +23,21 @@
     "prompt": "guest@akashi-dev:~$"
   },
   "Desktop": {
-    "title": "AKASHI DEV"
+    "title": "AKASHI DEV",
+    "shortcuts": {
+      "projects": "Projects",
+      "about": "About me",
+      "experience": "Experience",
+      "skills": "Skills",
+      "terminal": "Terminal",
+      "notes": "Notes & Blog",
+      "cv": "Resume.pdf",
+      "trash": "Recycle Bin",
+      "trashTitle": "Recycle Bin",
+      "trashEmpty": "The recycle bin is empty.",
+      "cvOpening": "Opening resume...",
+      "cvNotFound": "The CV file is not configured yet."
+    }
   },
   "About": {
     "title": "About me - AKASHI DEV",

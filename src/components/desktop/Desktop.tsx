@@ -14,6 +14,7 @@ import NotificationCenter from './NotificationCenter';
 import ContextMenu from './ContextMenu';
 import Spotlight from './Spotlight';
 import OfflineDetector from './OfflineDetector';
+import DesktopShortcuts from './DesktopShortcuts';
 import { useContextMenuStore } from '@/store/useContextMenuStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
@@ -113,6 +114,9 @@ export default function Desktop() {
       <NotificationCenter />
       <ContextMenu />
       <Spotlight />
+
+      {/* Desktop Shortcuts Layer */}
+      <DesktopShortcuts />
 
       {/* Window Manager Layer - container passes clicks through, windows catch them */}
       <div className="absolute inset-0 z-10 pointer-events-none">
